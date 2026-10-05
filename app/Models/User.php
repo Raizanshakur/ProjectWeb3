@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -20,6 +21,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'role',
         'email',
         'password',
     ];
@@ -46,22 +48,43 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function children()
-{
-    return $this->hasMany(Child::class);
- }
- public function consultations()
-{
-    return $this->hasMany(Consultation::class);
-}
 
-public function foodAnalyses()
-{
-    return $this->hasMany(FoodAnalysis::class);
-}
+    // ── Role Helpers ─────────────────────────────────────
 
-public function aiChats()
-{
-    return $this->hasMany(AiChat::class);
-}
+    public function isParent(): bool
+    {
+        return $this->role === 'parent';
+    }
+
+    public function isDoctor(): bool
+    {
+        return $this->role === 'doctor';
+    }
+
+    // ── Relationships ────────────────────────────────────
+
+    public function doctor(): HasOne
+    {
+        return $this->hasOne(Doctor::class);
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Child::class);
+    }
+
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class);
+    }
+
+    public function foodAnalyses(): HasMany
+    {
+        return $this->hasMany(FoodAnalysis::class);
+    }
+
+    public function aiChats(): HasMany
+    {
+        return $this->hasMany(AiChat::class);
+    }
 }
