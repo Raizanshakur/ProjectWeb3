@@ -1,12 +1,18 @@
+
 <?php
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChildController;
+use App\Http\Controllers\Doctor\DoctorDashboardController;
+use App\Http\Controllers\Doctor\DoctorConsultationController;
+use App\Http\Controllers\Doctor\DoctorPatientsController;
+use App\Http\Controllers\Doctor\DoctorProfileController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
-| Root
+| ROOT
 |--------------------------------------------------------------------------
 */
 
@@ -16,8 +22,10 @@ Route::get('/', function () {
             ? redirect()->route('dokter.dashboard')
             : redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +64,7 @@ Route::middleware(['auth', 'verified', 'role:parent'])->group(function () {
     Route::resource('children', ChildController::class);
 });
 
+
 /*
 |--------------------------------------------------------------------------
 | DOCTOR ROUTES
@@ -67,25 +76,33 @@ Route::middleware(['auth', 'verified', 'role:doctor'])
     ->name('dokter.')
     ->group(function () {
 
+        // Dashboard Dokter
         Route::get('/dashboard', [DoctorDashboardController::class, 'index'])
             ->name('dashboard');
 
-        Route::get('/consultations', [DoctorConsultationController::class, 'index'])
-            ->name('consultations');
+        // Konsultasi
+        Route::get('/konsultasi', [DoctorConsultationController::class, 'index'])
+            ->name('konsultasi');
 
-        Route::get('/consultations/{id}', [DoctorConsultationController::class, 'show'])
-            ->name('consultations.show');
+        Route::get('/konsultasi/{id}', [DoctorConsultationController::class, 'show'])
+            ->name('konsultasi.detail');
 
-        Route::get('/profile', [DoctorProfileController::class, 'index'])
+        // Pasien
+        Route::get('/pasien', [DoctorPatientsController::class, 'index'])
+            ->name('pasien');
+
+        // Profil
+        Route::get('/profil', [DoctorProfileController::class, 'index'])
             ->name('profil');
 
-        Route::put('/profile', [DoctorProfileController::class, 'update'])
+        Route::patch('/profil', [DoctorProfileController::class, 'update'])
             ->name('profil.update');
     });
 
+
 /*
 |--------------------------------------------------------------------------
-| SHARED ROUTES (both roles)
+| SHARED ROUTES
 |--------------------------------------------------------------------------
 */
 
@@ -104,42 +121,9 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| DOKTER / ADMIN
+| AUTH ROUTES
 |--------------------------------------------------------------------------
 */
 
-// Login dokter (tanpa middleware auth)
-Route::get('/dokter/login', [DoctorAuthController::class, 'showLogin'])
-    ->name('dokter.login');
-
-Route::post('/dokter/login', [DoctorAuthController::class, 'login'])
-    ->name('dokter.login.submit');
-
-// Halaman dokter (placeholder — belum pakai middleware auth khusus dokter)
-Route::prefix('dokter')->group(function () {
-
-    Route::get('/dashboard', [DoctorDashboardController::class, 'index'])
-        ->name('dokter.dashboard');
-
-    Route::get('/konsultasi', [DoctorConsultationController::class, 'index'])
-        ->name('dokter.konsultasi');
-
-    Route::get('/konsultasi/{id}', [DoctorConsultationController::class, 'show'])
-        ->name('dokter.konsultasi.detail');
-
-    Route::get('/pasien', [DoctorPatientsController::class, 'index'])
-        ->name('dokter.pasien');
-
-    Route::get('/profil', [DoctorProfileController::class, 'index'])
-        ->name('dokter.profil');
-
-    Route::patch('/profil', [DoctorProfileController::class, 'update'])
-        ->name('dokter.profil.update');
-
-    Route::post('/logout', [DoctorAuthController::class, 'logout'])
-        ->name('dokter.logout');
-
-});
-
-
 require __DIR__.'/auth.php';
+
