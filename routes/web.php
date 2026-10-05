@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChildController;
+use App\Http\Controllers\Doctor\DoctorAuthController;
+use App\Http\Controllers\Doctor\DoctorDashboardController;
+use App\Http\Controllers\Doctor\DoctorConsultationController;
+use App\Http\Controllers\Doctor\DoctorPatientsController;
+use App\Http\Controllers\Doctor\DoctorProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -57,5 +62,46 @@ Route::middleware('auth')->group(function () {
     Route::resource('children', ChildController::class);
 
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| DOKTER / ADMIN
+|--------------------------------------------------------------------------
+*/
+
+// Login dokter (tanpa middleware auth)
+Route::get('/dokter/login', [DoctorAuthController::class, 'showLogin'])
+    ->name('dokter.login');
+
+Route::post('/dokter/login', [DoctorAuthController::class, 'login'])
+    ->name('dokter.login.submit');
+
+// Halaman dokter (placeholder — belum pakai middleware auth khusus dokter)
+Route::prefix('dokter')->group(function () {
+
+    Route::get('/dashboard', [DoctorDashboardController::class, 'index'])
+        ->name('dokter.dashboard');
+
+    Route::get('/konsultasi', [DoctorConsultationController::class, 'index'])
+        ->name('dokter.konsultasi');
+
+    Route::get('/konsultasi/{id}', [DoctorConsultationController::class, 'show'])
+        ->name('dokter.konsultasi.detail');
+
+    Route::get('/pasien', [DoctorPatientsController::class, 'index'])
+        ->name('dokter.pasien');
+
+    Route::get('/profil', [DoctorProfileController::class, 'index'])
+        ->name('dokter.profil');
+
+    Route::patch('/profil', [DoctorProfileController::class, 'update'])
+        ->name('dokter.profil.update');
+
+    Route::post('/logout', [DoctorAuthController::class, 'logout'])
+        ->name('dokter.logout');
+
+});
+
 
 require __DIR__.'/auth.php';
