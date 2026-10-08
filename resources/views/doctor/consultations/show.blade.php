@@ -52,7 +52,7 @@
             </nav>
 
             <div class="p-4 mb-4">
-                <form action="{{ route('dokter.logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="flex items-center gap-3 px-4 py-3.5 text-red-600 rounded-2xl hover:bg-red-50 transition-colors font-medium w-full text-left">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
@@ -301,7 +301,7 @@
             </nav>
 
             <div class="p-4 mb-4">
-                <form action="{{ route('dokter.logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="flex items-center gap-3 px-4 py-3.5 text-red-600 rounded-2xl hover:bg-red-50 font-medium w-full text-left">
                         <i data-lucide="log-out" class="w-5 h-5"></i>

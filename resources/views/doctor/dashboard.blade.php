@@ -111,7 +111,7 @@
                             <p class="text-xs text-stone-500 truncate">{{ $doctor->specialization ?? 'Dokter Spesialis Anak' }}</p>
                         </div>
                     </div>
-                    <form action="{{ route('dokter.logout') }}" method="POST">
+                    <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-red-500 hover:bg-red-50 font-semibold text-sm transition-colors">
                             <i data-lucide="log-out" class="w-4 h-4"></i>

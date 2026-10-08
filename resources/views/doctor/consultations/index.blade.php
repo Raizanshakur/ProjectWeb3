@@ -71,7 +71,7 @@
 
             <!-- Bottom Action -->
             <div class="p-4 border-t border-stone-200">
-                <form method="POST" action="{{ route('dokter.logout') }}">
+                <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="flex items-center gap-3 px-4 py-3.5 w-full text-red-500 hover:bg-red-50 rounded-2xl transition-all font-medium">
                         <i data-lucide="log-out" class="w-5 h-5"></i>

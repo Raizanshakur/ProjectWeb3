@@ -55,7 +55,7 @@
 
         <!-- Logout -->
         <div class="p-4 border-t border-stone-100">
-            <form method="POST" action="{{ route('dokter.logout') }}">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-600 bg-red-50 hover:bg-red-100 rounded-2xl transition-all font-semibold">
                     <i data-lucide="log-out" class="w-5 h-5"></i>

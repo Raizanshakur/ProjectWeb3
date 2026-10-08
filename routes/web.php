@@ -1,14 +1,14 @@
 
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ChildController;
-use App\Http\Controllers\Doctor\DoctorDashboardController;
 use App\Http\Controllers\Doctor\DoctorConsultationController;
+use App\Http\Controllers\Doctor\DoctorDashboardController;
 use App\Http\Controllers\Doctor\DoctorPatientsController;
 use App\Http\Controllers\Doctor\DoctorProfileController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +25,6 @@ Route::get('/', function () {
 
     return redirect()->route('login');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -64,7 +63,6 @@ Route::middleware(['auth', 'verified', 'role:parent'])->group(function () {
     Route::resource('children', ChildController::class);
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | DOCTOR ROUTES
@@ -99,7 +97,6 @@ Route::middleware(['auth', 'verified', 'role:doctor'])
             ->name('profil.update');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | SHARED ROUTES
@@ -116,8 +113,25 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    // Alias logout dokter untuk kompatibilitas, memakai controller autentikasi yang sama
+    Route::post('/dokter/logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('dokter.logout');
 });
 
+/*
+|--------------------------------------------------------------------------
+| LEGACY DOCTOR AUTH ROUTES
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('guest')->group(function () {
+    Route::get('/dokter/login', function () {
+        return redirect()->route('login');
+    })->name('dokter.login');
+
+    Route::post('/dokter/login', [AuthenticatedSessionController::class, 'store']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -126,4 +140,3 @@ Route::middleware('auth')->group(function () {
 */
 
 require __DIR__.'/auth.php';
-
