@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'vision_model' => env('GEMINI_VISION_MODEL', 'gemini-3.8-flash'),
+        'chat_model' => env('GEMINI_CHAT_MODEL', 'gemini-3.8-flash'),
+        'timeout' => (int) env('GEMINI_TIMEOUT_SECONDS', 25),
+    ],
+
 ];

@@ -42,4 +42,38 @@ class Consultation extends Model
     {
         return $this->hasMany(ConsultationMessage::class);
     }
+
+    // ── Status Helpers ────────────────────────────────────
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isAccepted(): bool
+    {
+        return $this->status === 'accepted';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->isPending();
+    }
+
+    // ── Scopes ───────────────────────────────────────────
+
+    public function scopeForParent($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
 }

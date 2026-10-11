@@ -21,6 +21,14 @@ class FoodAnalysis extends Model
         'fiber',
         'ai_analysis',
         'recommendation',
+        'status',
+        'model_used',
+        'is_food',
+        'portion_description',
+        'visible_ingredients',
+        'uncertainty_note',
+        'error_message',
+        'analyzed_at',
     ];
 
     protected $casts = [
@@ -29,6 +37,9 @@ class FoodAnalysis extends Model
         'carbohydrates' => 'decimal:2',
         'fat' => 'decimal:2',
         'fiber' => 'decimal:2',
+        'is_food' => 'boolean',
+        'visible_ingredients' => 'array',
+        'analyzed_at' => 'datetime',
     ];
 
     public function user()
@@ -39,5 +50,10 @@ class FoodAnalysis extends Model
     public function child()
     {
         return $this->belongsTo(Child::class);
+    }
+
+    public function mealRecord()
+    {
+        return $this->hasOne(MealRecord::class, 'food_analysis_id');
     }
 }

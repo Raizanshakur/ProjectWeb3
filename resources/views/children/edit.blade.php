@@ -402,21 +402,7 @@
 
                                 •
 
-                                @if($child->birth_date)
-
-                                    @php
-                                        $currentAge = \Carbon\Carbon::parse($child->birth_date)->diff(now());
-                                    @endphp
-
-                                    @if($currentAge->y > 0)
-                                        {{ $currentAge->y }} tahun {{ $currentAge->m }} bulan
-                                    @else
-                                        {{ $currentAge->m }} bulan
-                                    @endif
-
-                                @else
-                                    Usia belum tersedia
-                                @endif
+                                {{ $child->formatted_age }}
 
                             </p>
 
@@ -426,6 +412,29 @@
 
                 </div>
 
+                {{-- ================= ERROR LARAVEL ================= --}}
+                @if ($errors->any())
+                    <div class="mx-4 sm:mx-6 md:mx-9 mt-6
+                                bg-red-50
+                                border border-red-100
+                                rounded-2xl px-5 py-4">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="circle-alert"
+                               class="w-5 h-5 text-red-500 mt-0.5">
+                            </i>
+                            <div>
+                                <p class="font-semibold text-red-600">
+                                    Data belum bisa disimpan
+                                </p>
+                                <ul class="text-sm text-red-500 mt-2 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>• {{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- ================= FORM ================= --}}
                 <form method="POST"

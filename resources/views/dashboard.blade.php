@@ -173,6 +173,26 @@
                 </a>
 
 
+                <a href="{{ route('consultations.index') }}"
+                   class="flex items-center gap-4
+                          px-4 py-4 rounded-2xl
+                          text-gray-600
+                          hover:bg-white transition">
+
+                    <span class="w-10 h-10 rounded-full
+                                 bg-white
+                                 flex items-center justify-center">
+
+                        <i data-lucide="stethoscope"
+                           class="w-5 h-5"></i>
+
+                    </span>
+
+                    Konsultasi
+
+                </a>
+
+
                 <a href="{{ route('children.index') }}"
                    class="flex items-center gap-4
                           px-4 py-4 rounded-2xl
@@ -361,7 +381,7 @@
 
                 @forelse($children as $child)
 
-                    <a href="{{ route('children.show', $child) }}"
+                    <a href="{{ route('dashboard', ['child_id' => $child->id]) }}"
                        class="flex-shrink-0
                               flex items-center gap-3
                               {{ $selectedChild && $selectedChild->id === $child->id
@@ -390,8 +410,7 @@
                                          ? 'text-white/70'
                                          : 'text-gray-400' }}">
 
-                            {{ \Carbon\Carbon::parse($child->birth_date)
-                                ->diffInMonths(now()) }} bln
+                            {{ $child->age_in_months }} bln
 
                         </span>
 
@@ -502,18 +521,32 @@
                                     <i data-lucide="trending-up"
                                        class="w-3 h-3"></i>
 
-                                    DEMO
+                                    @if($latestGrowthRecord)
+                                        Pertumbuhan
+                                    @else
+                                        Data belum cukup
+                                    @endif
 
                                 </span>
 
 
-                                <h2 class="text-4xl sm:text-5xl
+                                <h2 class="text-3xl sm:text-4xl
                                            font-bold mt-4">
-                                    85%
+                                    @if($latestGrowthRecord && $latestGrowthRecord->nutrition_status)
+                                        {{ $latestGrowthRecord->nutrition_status }}
+                                    @elseif($latestGrowthRecord)
+                                        Tercatat
+                                    @else
+                                        Belum dinilai
+                                    @endif
                                 </h2>
 
                                 <p class="text-gray-600 mt-1">
-                                    Tumbuh Optimal
+                                    @if($latestGrowthRecord)
+                                        Berat {{ $latestGrowthRecord->weight }} kg • Tinggi {{ $latestGrowthRecord->height }} cm
+                                    @else
+                                        Belum ada catatan pengukuran
+                                    @endif
                                 </p>
 
                             </div>
@@ -530,12 +563,20 @@
                                 <div class="text-center">
 
                                     <p class="font-bold text-lg">
-                                        85%
+                                        @if($latestGrowthRecord)
+                                            {{ $latestGrowthRecord->weight }}
+                                        @else
+                                            -
+                                        @endif
                                     </p>
 
                                     <p class="text-[10px]
                                               text-gray-500">
-                                        status
+                                        @if($latestGrowthRecord)
+                                            kg
+                                        @else
+                                            status
+                                        @endif
                                     </p>
 
                                 </div>
@@ -565,7 +606,7 @@
 
 
 
-                    {{-- BERAT LAHIR --}}
+                    {{-- BERAT LAHIR / TERKINI --}}
                     <div class="xl:col-span-2
                                 bg-white rounded-[28px]
                                 p-6 border
@@ -588,12 +629,11 @@
 
 
                             <span class="text-xs
-                                         bg-green-50
-                                         text-green-700
+                                         {{ $latestGrowthRecord ? 'bg-green-50 text-green-700' : 'bg-stone-100 text-stone-600' }}
                                          rounded-full
-                                         px-2 py-1 h-fit">
+                                         px-2 py-1 h-fit font-medium">
 
-                                Data lahir
+                                {{ $latestGrowthRecord ? 'Terkini' : 'Data lahir' }}
 
                             </span>
 
@@ -604,7 +644,7 @@
                                   text-gray-500
                                   mt-5 tracking-wide">
 
-                            BERAT LAHIR
+                            {{ $latestGrowthRecord ? 'BERAT TERKINI' : 'BERAT LAHIR' }}
 
                         </p>
 
@@ -612,7 +652,16 @@
                         <h3 class="text-3xl
                                    font-bold mt-1">
 
-                            @if($selectedChild->birth_weight)
+                            @if($latestGrowthRecord)
+
+                                {{ $latestGrowthRecord->weight }}
+
+                                <span class="text-base
+                                             font-normal ml-1">
+                                    kg
+                                </span>
+
+                            @elseif($selectedChild->birth_weight)
 
                                 {{ $selectedChild->birth_weight }}
 
@@ -635,25 +684,24 @@
                         <div class="flex items-end
                                     gap-1.5 mt-7 h-8">
 
-                            <span class="h-2 w-full
-                                         bg-[#DDEBE8]
-                                         rounded-full"></span>
+                            @php
+                                $wList = $growthChartData['weights'] ?? [];
+                                $wCount = count($wList);
+                            @endphp
 
-                            <span class="h-3 w-full
-                                         bg-[#BFD9D4]
-                                         rounded-full"></span>
-
-                            <span class="h-4 w-full
-                                         bg-[#9BC7BF]
-                                         rounded-full"></span>
-
-                            <span class="h-5 w-full
-                                         bg-[#72ADA3]
-                                         rounded-full"></span>
-
-                            <span class="h-7 w-full
-                                         bg-[#4B988D]
-                                         rounded-full"></span>
+                            @if($wCount > 0)
+                                <span class="h-2 w-full bg-[#DDEBE8] rounded-full"></span>
+                                <span class="h-3 w-full bg-[#BFD9D4] rounded-full"></span>
+                                <span class="h-4 w-full bg-[#9BC7BF] rounded-full"></span>
+                                <span class="h-5 w-full bg-[#72ADA3] rounded-full"></span>
+                                <span class="h-7 w-full bg-[#4B988D] rounded-full"></span>
+                            @else
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                            @endif
 
                         </div>
 
@@ -661,7 +709,7 @@
 
 
 
-                    {{-- TINGGI LAHIR --}}
+                    {{-- TINGGI LAHIR / TERKINI --}}
                     <div class="xl:col-span-2
                                 bg-white rounded-[28px]
                                 p-6 border
@@ -684,12 +732,11 @@
 
 
                             <span class="text-xs
-                                         bg-amber-50
-                                         text-amber-700
+                                         {{ $latestGrowthRecord ? 'bg-amber-50 text-amber-700' : 'bg-stone-100 text-stone-600' }}
                                          rounded-full
-                                         px-2 py-1 h-fit">
+                                         px-2 py-1 h-fit font-medium">
 
-                                Data lahir
+                                {{ $latestGrowthRecord ? 'Terkini' : 'Data lahir' }}
 
                             </span>
 
@@ -699,7 +746,7 @@
                         <p class="text-xs
                                   text-gray-500 mt-5">
 
-                            TINGGI LAHIR
+                            {{ $latestGrowthRecord ? 'TINGGI TERKINI' : 'TINGGI LAHIR' }}
 
                         </p>
 
@@ -707,7 +754,16 @@
                         <h3 class="text-3xl
                                    font-bold mt-1">
 
-                            @if($selectedChild->birth_height)
+                            @if($latestGrowthRecord)
+
+                                {{ $latestGrowthRecord->height }}
+
+                                <span class="text-base
+                                             font-normal ml-1">
+                                    cm
+                                </span>
+
+                            @elseif($selectedChild->birth_height)
 
                                 {{ $selectedChild->birth_height }}
 
@@ -730,25 +786,24 @@
                         <div class="flex items-end
                                     gap-1.5 mt-7 h-8">
 
-                            <span class="h-2 w-full
-                                         bg-[#F4ECDC]
-                                         rounded-full"></span>
+                            @php
+                                $hList = $growthChartData['heights'] ?? [];
+                                $hCount = count($hList);
+                            @endphp
 
-                            <span class="h-3 w-full
-                                         bg-[#EADBBE]
-                                         rounded-full"></span>
-
-                            <span class="h-4 w-full
-                                         bg-[#DFC995]
-                                         rounded-full"></span>
-
-                            <span class="h-5 w-full
-                                         bg-[#D5B96E]
-                                         rounded-full"></span>
-
-                            <span class="h-7 w-full
-                                         bg-[#C8A14C]
-                                         rounded-full"></span>
+                            @if($hCount > 0)
+                                <span class="h-2 w-full bg-[#F4ECDC] rounded-full"></span>
+                                <span class="h-3 w-full bg-[#EADBBE] rounded-full"></span>
+                                <span class="h-4 w-full bg-[#DFC995] rounded-full"></span>
+                                <span class="h-5 w-full bg-[#D5B96E] rounded-full"></span>
+                                <span class="h-7 w-full bg-[#C8A14C] rounded-full"></span>
+                            @else
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                                <span class="h-1.5 w-full bg-stone-100 rounded-full"></span>
+                            @endif
 
                         </div>
 
@@ -809,12 +864,12 @@
                                     justify-between mt-5">
 
                             <span class="font-bold">
-                                520
+                                {{ number_format($dailyTotals['calories'], 0, ',', '.') }}
                             </span>
 
                             <span class="text-sm
                                          text-gray-500">
-                                /850 kkal
+                                /{{ number_format($targetCalories, 0, ',', '.') }} kkal
                             </span>
 
                         </div>
@@ -824,10 +879,8 @@
                                     rounded-full mt-2
                                     overflow-hidden">
 
-                            <div class="w-[61%]
-                                        h-full
-                                        bg-[#4B988D]
-                                        rounded-full">
+                            <div class="h-full bg-[#4B988D] rounded-full transition-all duration-300"
+                                 style="width: {{ $progressBarWidth }}%;">
                             </div>
 
                         </div>
@@ -845,7 +898,7 @@
 
                                 <strong class="block
                                                mt-2 text-xs">
-                                    18g
+                                    {{ round($dailyTotals['protein'], 1) }}g
                                 </strong>
 
                                 <span class="text-[10px]
@@ -865,7 +918,7 @@
 
                                 <strong class="block
                                                mt-2 text-xs">
-                                    15g
+                                    {{ round($dailyTotals['fat'], 1) }}g
                                 </strong>
 
                                 <span class="text-[10px]
@@ -885,7 +938,7 @@
 
                                 <strong class="block
                                                mt-2 text-xs">
-                                    62g
+                                    {{ round($dailyTotals['carbohydrates'], 1) }}g
                                 </strong>
 
                                 <span class="text-[10px]
@@ -900,7 +953,11 @@
 
                         <p class="text-[10px]
                                   text-gray-400 mt-5">
-                            * Data nutrisi masih tampilan demo.
+                            @if($dailyTotals['count'] > 0)
+                                * Berdasarkan {{ $dailyTotals['count'] }} catatan makanan hari ini.
+                            @else
+                                * Belum ada catatan makanan untuk hari ini.
+                            @endif
                         </p>
 
                     </div>
@@ -924,10 +981,7 @@
                         </p>
 
                         <h3 class="text-2xl font-bold mt-1">
-
-                            {{ \Carbon\Carbon::parse($selectedChild->birth_date)
-                                ->diffInMonths(now()) }}
-
+                            {{ $selectedChild->age_in_months }}
                         </h3>
 
                         <p class="text-xs text-gray-400">
@@ -969,11 +1023,19 @@
                         </p>
 
                         <h3 class="text-2xl font-bold mt-1">
-                            61%
+                            @if($dailyTotals['count'] > 0)
+                                {{ $caloriePercentage }}%
+                            @else
+                                -
+                            @endif
                         </h3>
 
                         <p class="text-xs text-gray-400">
-                            demo
+                            @if($dailyTotals['count'] > 0)
+                                terpenuhi
+                            @else
+                                belum ada data
+                            @endif
                         </p>
 
                     </div>
@@ -988,11 +1050,21 @@
                         </p>
 
                         <h3 class="text-xl font-bold mt-1">
-                            Optimal
+                            @if($latestGrowthRecord && $latestGrowthRecord->nutrition_status)
+                                {{ $latestGrowthRecord->nutrition_status }}
+                            @elseif($latestGrowthRecord)
+                                Tercatat
+                            @else
+                                Belum dinilai
+                            @endif
                         </h3>
 
                         <p class="text-xs text-gray-400">
-                            demo
+                            @if($latestGrowthRecord)
+                                data terkini
+                            @else
+                                belum ada data
+                            @endif
                         </p>
 
                     </div>
@@ -1095,12 +1167,11 @@
 
                             <span class="w-11 h-11
                                          rounded-full
-                                         bg-green-50
-                                         text-green-500
+                                         {{ $hasMonthlyRecord ? 'bg-green-50 text-green-500' : 'bg-amber-50 text-amber-500' }}
                                          flex items-center
                                          justify-center">
 
-                                <i data-lucide="calendar-check"
+                                <i data-lucide="{{ $hasMonthlyRecord ? 'calendar-check' : 'calendar-clock' }}"
                                    class="w-5 h-5"></i>
 
                             </span>
@@ -1113,19 +1184,22 @@
                                 </h3>
 
                                 <p class="text-sm text-gray-400">
-                                    Lengkapi pemantauan
-                                    {{ $selectedChild->name }}
+                                    @if($hasMonthlyRecord)
+                                        Pengukuran {{ $selectedChild->name }} bulan ini sudah dicatat.
+                                    @else
+                                        Lengkapi pemantauan {{ $selectedChild->name }} bulan ini.
+                                    @endif
                                 </p>
 
                             </div>
 
 
                             <span class="text-xs
-                                         bg-gray-100
+                                         {{ $hasMonthlyRecord ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}
                                          rounded-full
                                          px-3 py-1">
 
-                                Hari ini
+                                {{ $hasMonthlyRecord ? 'Selesai' : 'Belum diisi' }}
 
                             </span>
 
@@ -1175,43 +1249,41 @@
                         </div>
 
 
-                        <div class="mt-7
-                                    flex gap-4
-                                    items-center
-                                    border-t
-                                    border-stone-100 pt-5">
-
-                            <span class="w-11 h-11
-                                         rounded-full
-                                         bg-[#E7F5F2]
-                                         text-[#438F83]
-                                         flex items-center
-                                         justify-center">
-
-                                <i data-lucide="activity"
-                                   class="w-5 h-5"></i>
-
-                            </span>
-
-
-                            <div>
-
-                                <h3 class="font-semibold">
-                                    Profil Anak Tersedia
-                                </h3>
-
-                                <p class="text-sm text-gray-400">
-
-                                    {{ $selectedChild->name }}
-                                    berusia
-                                    {{ \Carbon\Carbon::parse($selectedChild->birth_date)
-                                        ->diffInMonths(now()) }}
-                                    bulan
-
-                                </p>
-
-                            </div>
-
+                        <div class="mt-7 divide-y divide-stone-100 border-t border-stone-100">
+                            @forelse($recentActivities as $activity)
+                                <div class="flex gap-4 items-center pt-4 pb-3 first:pt-4">
+                                    <span class="w-11 h-11 shrink-0 rounded-full {{ $activity['icon_bg'] }} {{ $activity['icon_color'] }} flex items-center justify-center">
+                                        <i data-lucide="{{ $activity['icon'] }}" class="w-5 h-5"></i>
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-semibold text-sm truncate">
+                                            {{ $activity['title'] }}
+                                        </h3>
+                                        <p class="text-xs text-gray-400 truncate mt-0.5">
+                                            {{ $activity['description'] }}
+                                        </p>
+                                    </div>
+                                    @if($activity['time_label'])
+                                        <span class="text-[11px] text-gray-400 shrink-0">
+                                            {{ $activity['time_label'] }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="flex gap-4 items-center pt-5">
+                                    <span class="w-11 h-11 rounded-full bg-[#E7F5F2] text-[#438F83] flex items-center justify-center">
+                                        <i data-lucide="activity" class="w-5 h-5"></i>
+                                    </span>
+                                    <div>
+                                        <h3 class="font-semibold">
+                                            Profil Anak Tersedia
+                                        </h3>
+                                        <p class="text-sm text-gray-400">
+                                            {{ $selectedChild->name }} berusia {{ $selectedChild->age_in_months }} bulan. Belum ada catatan aktivitas baru.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforelse
                         </div>
 
                     </div>
@@ -1453,6 +1525,7 @@
 </nav>
 
 <script>
+    window.growthChartData = @json($growthChartData ?? ['labels' => [], 'weights' => [], 'heights' => []]);
     lucide.createIcons();
 </script>
 

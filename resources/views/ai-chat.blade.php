@@ -303,40 +303,23 @@
                 </div>
 
 
-                {{-- CHILD --}}
-                <button type="button"
-                        class="w-full sm:w-auto flex items-center gap-3
-                               bg-white
-                               border border-stone-200
-                               rounded-full
-                               py-2 pl-2 pr-4 sm:pr-5 shadow-sm">
-
-                    <span class="w-10 h-10 rounded-full
-                                 bg-[#E2F1ED]
-                                 text-[#438F83]
-                                 flex items-center justify-center">
-
-                        <i data-lucide="baby"
-                           class="w-5 h-5"></i>
-
-                    </span>
-
-                    <div class="text-left">
-
-                        <p class="text-xs text-gray-400">
-                            Konsultasi untuk
-                        </p>
-
-                        <p class="text-sm font-semibold">
-                            Adam • 38 bulan
-                        </p>
-
+                {{-- CHILD SELECTOR --}}
+                @if ($children->isNotEmpty())
+                    <div class="w-full sm:w-auto flex items-center gap-2 bg-white border border-stone-200 rounded-full py-1.5 pl-3 pr-2 shadow-sm">
+                        <span class="w-8 h-8 rounded-full bg-[#E2F1ED] text-[#438F83] flex items-center justify-center shrink-0">
+                            <i data-lucide="baby" class="w-4 h-4"></i>
+                        </span>
+                        <span class="text-xs text-stone-500 font-medium">Topik Anak:</span>
+                        <select id="chatChildId" onchange="switchChild(this.value)" class="border-0 bg-transparent text-xs font-semibold text-stone-800 focus:ring-0 cursor-pointer pr-7 py-1">
+                            <option value="" {{ ! $selectedChild ? 'selected' : '' }}>Umum (Tanpa spesifik anak)</option>
+                            @foreach ($children as $child)
+                                <option value="{{ $child->id }}" {{ $selectedChild?->id === $child->id ? 'selected' : '' }}>
+                                    {{ $child->name }} ({{ in_array($child->gender, ['L', 'male']) ? 'L' : 'P' }})
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-
-                    <i data-lucide="chevron-down"
-                       class="w-4 h-4 text-gray-400"></i>
-
-                </button>
+                @endif
 
             </div>
 
@@ -386,40 +369,36 @@
             {{-- ================= AI CONTENT ================= --}}
             <div id="aiContent" class="mt-6">
 
-                {{-- DISCLAIMER --}}
-                <div class="flex items-start gap-3
-                            bg-[#EEF6F3]
-                            border border-[#D9EAE5]
-                            rounded-2xl p-4">
-
-                    <span class="w-9 h-9 rounded-full
-                                 bg-white text-[#438F83]
-                                 flex items-center justify-center
-                                 flex-shrink-0">
-
-                        <i data-lucide="info"
-                           class="w-4 h-4"></i>
-
-                    </span>
-
-                    <div>
-
-                        <p class="font-semibold text-sm">
-                            NutriBot adalah asisten informasi
-                        </p>
-
-                        <p class="text-xs
-                                  text-gray-500
-                                  mt-1 leading-5">
-
-                            Informasi dari AI bukan diagnosis medis
-                            dan tidak menggantikan konsultasi langsung
-                            dengan dokter atau tenaga kesehatan.
-
-                        </p>
-
+                {{-- NOTICE BANNER: FREE TIER PRIVACY & MEDICAL DISCLAIMER --}}
+                <div class="bg-gradient-to-r from-amber-50 to-[#EEF6F3] border border-amber-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                    <div class="flex items-start gap-3">
+                        <span class="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <h3 class="font-bold text-sm text-stone-900">
+                                Pemberitahuan Privasi Google Gemini (Tier Free)
+                            </h3>
+                            <p class="text-xs text-stone-600 leading-relaxed">
+                                Pertanyaan Anda diproses oleh <strong>Google Gemini AI (Tier Free)</strong>. Sesuai ketentuan Google AI Studio Free Tier, percakapan dapat ditinjau oleh pihak Google untuk peningkatan mutu model.
+                                <strong>Mohon tidak menuliskan identitas sensitif anak</strong> seperti nama lengkap, NIK, alamat rumah, nomor telepon, atau data rekam medis pribadi dalam pertanyaan Anda.
+                            </p>
+                        </div>
                     </div>
 
+                    <div class="flex items-start gap-3 pt-2.5 border-t border-stone-200/60">
+                        <span class="w-9 h-9 rounded-full bg-teal-100 text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <h3 class="font-bold text-sm text-stone-900">
+                                Batasan Medis NutriBot
+                            </h3>
+                            <p class="text-xs text-stone-600 leading-relaxed">
+                                NutriBot adalah asisten edukasi nutrisi dan tumbuh kembang anak, <strong>bukan pengganti tenaga medis</strong>. NutriBot tidak memberikan diagnosis klinis atau dosis obat. Bila anak menunjukkan gejala darurat atau sakit mengkhawatirkan, segera periksakan ke dokter spesialis anak.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -456,7 +435,7 @@
                                 <span class="absolute
                                              -right-1 -bottom-1
                                              w-4 h-4
-                                             bg-green-500
+                                             bg-emerald-500
                                              border-2 border-white
                                              rounded-full">
                                 </span>
@@ -466,12 +445,12 @@
 
                             <div>
 
-                                <h2 class="font-bold">
-                                    NutriBot
+                                <h2 class="font-bold text-stone-900">
+                                    NutriBot AI
                                 </h2>
 
-                                <p class="text-xs text-green-600">
-                                    Online • AI GrowCare
+                                <p class="text-xs text-emerald-600 font-medium">
+                                    Online • Gemini 3.8 Flash
                                 </p>
 
                             </div>
@@ -481,14 +460,13 @@
 
                         <button type="button"
                                 onclick="clearChat()"
-                                class="w-10 h-10
-                                       rounded-full
-                                       hover:bg-gray-100
-                                       text-gray-400
-                                       flex items-center justify-center">
+                                title="Hapus Riwayat Chat"
+                                class="px-3.5 py-1.5 rounded-full hover:bg-red-50 text-stone-500 hover:text-red-600 border border-stone-200 hover:border-red-200 transition text-xs font-semibold flex items-center gap-1.5">
 
-                            <i data-lucide="rotate-ccw"
-                               class="w-4 h-4"></i>
+                            <i data-lucide="trash-2"
+                               class="w-3.5 h-3.5"></i>
+
+                            <span class="hidden sm:inline">Hapus Riwayat</span>
 
                         </button>
 
@@ -499,108 +477,140 @@
                     <div id="chatMessages"
                          class="h-[55vh] min-h-[360px] max-h-[520px] sm:h-[430px]
                                 overflow-y-auto
-                                px-4 sm:px-5 md:px-8 py-5 sm:py-7">
+                                px-4 sm:px-5 md:px-8 py-5 sm:py-7 space-y-4">
 
+                        @if ($chats->isEmpty())
+                            {{-- EMPTY STATE --}}
+                            <div id="emptyChat"
+                                 class="h-full
+                                        flex flex-col
+                                        items-center justify-center
+                                        text-center">
 
-                        {{-- EMPTY STATE --}}
-                        <div id="emptyChat"
-                             class="h-full
-                                    flex flex-col
-                                    items-center justify-center
-                                    text-center">
+                                <div class="relative">
 
-                            <div class="relative">
+                                    <div class="w-24 h-24
+                                                rounded-[30px]
+                                                bg-[#E2F2ED]
+                                                text-[#438F83]
+                                                flex items-center justify-center">
 
-                                <div class="w-24 h-24
-                                            rounded-[30px]
-                                            bg-[#E2F2ED]
-                                            text-[#438F83]
-                                            flex items-center justify-center">
+                                        <i data-lucide="bot"
+                                           class="w-11 h-11"></i>
 
-                                    <i data-lucide="bot"
-                                       class="w-11 h-11"></i>
+                                    </div>
+
+                                    <span class="absolute
+                                                 -right-3 -top-3
+                                                 w-10 h-10
+                                                 rounded-full
+                                                 bg-[#FFF4D9]
+                                                 flex items-center justify-center shadow-sm">
+                                        ✨
+                                    </span>
 
                                 </div>
 
-                                <span class="absolute
-                                             -right-3 -top-3
-                                             w-10 h-10
-                                             rounded-full
-                                             bg-[#FFF4D9]
-                                             flex items-center justify-center">
-                                    ✨
-                                </span>
+
+                                <h2 class="text-2xl font-bold mt-6 text-stone-900">
+                                    Halo! Saya NutriBot
+                                </h2>
+
+
+                                <p class="text-stone-500
+                                          text-sm max-w-md
+                                          mt-2 leading-relaxed">
+
+                                    Saya siap memberikan informasi edukatif tentang nutrisi dan tumbuh kembang si kecil.
+
+                                </p>
+
+
+                                {{-- QUICK QUESTIONS --}}
+                                <div class="flex flex-wrap
+                                            justify-center
+                                            gap-2 mt-6 max-w-2xl">
+
+                                    <button type="button"
+                                            onclick="quickQuestion('Berapa kebutuhan kalori anak usia 3 tahun?')"
+                                            class="px-4 py-2.5
+                                                   rounded-full
+                                                   border border-stone-200
+                                                   text-xs sm:text-sm text-stone-600
+                                                   hover:bg-[#EDF6F3]
+                                                   hover:text-[#438F83]
+                                                   transition">
+
+                                        Kebutuhan kalori anak?
+
+                                    </button>
+
+
+                                    <button type="button"
+                                            onclick="quickQuestion('Apa contoh makanan tinggi protein untuk anak?')"
+                                            class="px-4 py-2.5
+                                                   rounded-full
+                                                   border border-stone-200
+                                                   text-xs sm:text-sm text-stone-600
+                                                   hover:bg-[#EDF6F3]
+                                                   hover:text-[#438F83]
+                                                   transition">
+
+                                        Makanan tinggi protein
+
+                                    </button>
+
+
+                                    <button type="button"
+                                            onclick="quickQuestion('Bagaimana cara meningkatkan nafsu makan anak?')"
+                                            class="px-4 py-2.5
+                                                   rounded-full
+                                                   border border-stone-200
+                                                   text-xs sm:text-sm text-stone-600
+                                                   hover:bg-[#EDF6F3]
+                                                   hover:text-[#438F83]
+                                                   transition">
+
+                                        Anak susah makan
+
+                                    </button>
+
+                                </div>
 
                             </div>
+                        @else
+                            @foreach ($chats as $chat)
+                                {{-- USER BUBBLE --}}
+                                <div class="flex justify-end mb-4">
+                                    <div class="max-w-[88%] sm:max-w-[75%]">
+                                        <div class="bg-[#4B988D] text-white px-5 py-3.5 rounded-[20px] rounded-br-md text-sm leading-relaxed shadow-sm">
+                                            {{ $chat->user_message }}
+                                        </div>
+                                        <p class="text-[10px] text-stone-400 text-right mt-1">
+                                            {{ $chat->created_at->format('H:i') }}
+                                            @if ($chat->child)
+                                                • <span class="text-stone-500 font-medium">{{ $chat->child->name }}</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
 
-
-                            <h2 class="text-2xl font-bold mt-6">
-                                Halo! Saya NutriBot
-                            </h2>
-
-
-                            <p class="text-gray-400
-                                      text-sm max-w-md
-                                      mt-2 leading-6">
-
-                                Saya siap membantu memberikan informasi
-                                tentang nutrisi dan tumbuh kembang si kecil.
-
-                            </p>
-
-
-                            {{-- QUICK QUESTIONS --}}
-                            <div class="flex flex-wrap
-                                        justify-center
-                                        gap-2 mt-6 max-w-2xl">
-
-                                <button type="button"
-                                        onclick="quickQuestion('Berapa kebutuhan kalori anak usia 3 tahun?')"
-                                        class="px-4 py-2.5
-                                               rounded-full
-                                               border border-stone-200
-                                               text-sm text-gray-600
-                                               hover:bg-[#EDF6F3]
-                                               hover:text-[#438F83]
-                                               transition">
-
-                                    Kebutuhan kalori anak?
-
-                                </button>
-
-
-                                <button type="button"
-                                        onclick="quickQuestion('Apa contoh makanan tinggi protein untuk anak?')"
-                                        class="px-4 py-2.5
-                                               rounded-full
-                                               border border-stone-200
-                                               text-sm text-gray-600
-                                               hover:bg-[#EDF6F3]
-                                               hover:text-[#438F83]
-                                               transition">
-
-                                    Makanan tinggi protein
-
-                                </button>
-
-
-                                <button type="button"
-                                        onclick="quickQuestion('Bagaimana cara meningkatkan nafsu makan anak?')"
-                                        class="px-4 py-2.5
-                                               rounded-full
-                                               border border-stone-200
-                                               text-sm text-gray-600
-                                               hover:bg-[#EDF6F3]
-                                               hover:text-[#438F83]
-                                               transition">
-
-                                    Anak susah makan
-
-                                </button>
-
-                            </div>
-
-                        </div>
+                                {{-- BOT BUBBLE --}}
+                                <div class="flex items-start gap-3 mb-4">
+                                    <div class="w-9 h-9 rounded-xl bg-[#E2F2ED] text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-xs font-bold">AI</span>
+                                    </div>
+                                    <div class="max-w-[88%] sm:max-w-[75%]">
+                                        <div class="bg-[#F4F5F1] text-stone-800 px-5 py-3.5 rounded-[20px] rounded-tl-md text-sm leading-relaxed border border-stone-200/50 whitespace-pre-wrap">
+                                            {{ $chat->ai_response }}
+                                        </div>
+                                        <p class="text-[10px] text-stone-400 mt-1">
+                                            NutriBot • Estimasi Edukasi • {{ $chat->created_at->format('H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
 
                     </div>
 
@@ -612,37 +622,33 @@
                         <form id="chatForm"
                               onsubmit="sendMessage(event)"
                               class="flex items-end gap-3">
+                            @csrf
 
                             <div class="flex-1
                                         bg-[#F7F6F2]
                                         border border-stone-200
                                         rounded-[22px]
-                                        flex items-center px-4 sm:px-5 min-w-0">
+                                        flex items-center px-4 sm:px-5 min-w-0 focus-within:border-[#4B988D] focus-within:ring-1 focus-within:ring-[#4B988D] transition">
 
                                 <input
                                     id="messageInput"
                                     type="text"
+                                    name="user_message"
+                                    maxlength="1000"
                                     autocomplete="off"
-                                    placeholder="Tanyakan tentang nutrisi anak..."
+                                    placeholder="Tanyakan tentang nutrisi atau tumbuh kembang anak..."
                                     class="w-full py-4
                                            border-0 bg-transparent
                                            focus:ring-0
-                                           placeholder:text-gray-400"
+                                           placeholder:text-stone-400 text-sm text-stone-800"
+                                    required
                                 >
-
-                                <button type="button"
-                                        class="text-gray-400
-                                               hover:text-[#438F83]">
-
-                                    <i data-lucide="paperclip"
-                                       class="w-5 h-5"></i>
-
-                                </button>
 
                             </div>
 
 
                             <button type="submit"
+                                    id="sendBtn"
                                     class="w-12 h-12 sm:w-14 sm:h-14 shrink-0
                                            rounded-full
                                            bg-[#4B988D]
@@ -650,8 +656,8 @@
                                            text-white
                                            flex items-center justify-center
                                            shadow-lg
-                                           shadow-emerald-100
-                                           transition">
+                                           shadow-emerald-900/10
+                                           transition active:scale-95 disabled:opacity-50">
 
                                 <i data-lucide="send"
                                    class="w-5 h-5"></i>
@@ -662,12 +668,10 @@
 
 
                         <p class="text-[11px]
-                                  text-gray-400
+                                  text-stone-400
                                   text-center mt-3">
 
-                            NutriBot dapat membuat kesalahan.
-                            Gunakan informasi sebagai edukasi,
-                            bukan diagnosis medis.
+                            NutriBot memberikan informasi edukasi umum. Mohon tidak memasukkan data pribadi anak.
 
                         </p>
 
@@ -718,70 +722,75 @@
                     </div>
 
 
-                    {{-- DOCTOR --}}
-                    <div class="max-w-2xl mx-auto
-                                mt-8
-                                border border-stone-100
-                                rounded-3xl p-5
-                                flex flex-col sm:flex-row
-                                sm:items-center gap-5">
+                    {{-- LIST DOKTER ATAU EMPTY STATE --}}
+                    @if(isset($availableDoctors) && $availableDoctors->count() > 0)
+                        <div class="max-w-2xl mx-auto mt-8 space-y-4">
+                            @foreach($availableDoctors as $doc)
+                                <div class="border border-stone-200/80 rounded-3xl p-5
+                                            flex flex-col sm:flex-row sm:items-center gap-5
+                                            hover:border-[#4B988D]/40 transition bg-[#FCFBF8]">
 
-                        <div class="w-16 h-16
-                                    rounded-2xl
-                                    bg-[#E7F2EF]
-                                    text-[#438F83]
-                                    flex items-center justify-center">
+                                    <div class="w-16 h-16 rounded-2xl bg-[#E7F2EF] text-[#438F83]
+                                                flex items-center justify-center shrink-0">
+                                        <i data-lucide="stethoscope" class="w-7 h-7"></i>
+                                    </div>
 
-                            <i data-lucide="user-round"
-                               class="w-7 h-7"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-bold text-base sm:text-lg text-[#202725] truncate">
+                                            {{ $doc->name }}
+                                        </h3>
 
+                                        <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                                            {{ $doc->specialization ?? 'Dokter Spesialis Anak' }}
+                                        </p>
+
+                                        @if($doc->practice_days)
+                                            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                                {{ $doc->practice_days }} ({{ \Illuminate\Support\Str::substr($doc->start_time ?? '08:00', 0, 5) }} - {{ \Illuminate\Support\Str::substr($doc->end_time ?? '16:00', 0, 5) }})
+                                            </p>
+                                        @endif
+
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                            <span class="text-xs font-medium text-emerald-700">Tersedia untuk Konsultasi</span>
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ route('consultations.create', array_filter(['doctor_id' => $doc->id, 'child_id' => $selectedChild?->id])) }}"
+                                       class="w-full sm:w-auto px-5 py-3 rounded-full bg-[#4B988D] text-white
+                                              text-sm font-semibold hover:bg-[#3D8379] transition
+                                              flex items-center justify-center gap-2 shrink-0">
+                                        <span>Ajukan Konsultasi</span>
+                                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </a>
+                                </div>
+                            @endforeach
                         </div>
-
-
-                        <div class="flex-1">
-
-                            <h3 class="font-bold">
-                                dr. Maya Putri, Sp.A
-                            </h3>
-
-                            <p class="text-sm
-                                      text-gray-400 mt-1">
-
-                                Dokter Spesialis Anak
-
-                            </p>
-
-                            <div class="flex items-center
-                                        gap-2 mt-2">
-
-                                <span class="w-2 h-2
-                                             bg-green-500
-                                             rounded-full">
-                                </span>
-
-                                <span class="text-xs text-green-600">
-                                    Tersedia
-                                </span>
-
+                    @else
+                        <div class="max-w-lg mx-auto mt-8 p-6 rounded-3xl bg-stone-50 border border-stone-200 text-center">
+                            <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                                <i data-lucide="user-x" class="w-6 h-6"></i>
                             </div>
-
+                            <h3 class="font-bold text-gray-800 text-base mb-1">
+                                Belum Ada Dokter Tersedia
+                            </h3>
+                            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mb-4">
+                                Saat ini belum ada dokter spesialis anak yang tersedia untuk konsultasi online.
+                            </p>
+                            <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-left text-xs text-amber-800 mb-4">
+                                <strong class="block font-semibold mb-1">💡 Petunjuk Lingkungan Lokal:</strong>
+                                Jalankan <code class="px-1.5 py-0.5 bg-white rounded font-mono text-[11px] border border-amber-300">php artisan db:seed</code> untuk mengisi akun dokter default (Dr. Anisa Rahma, Sp.A).
+                            </div>
                         </div>
+                    @endif
 
-
-                        <button type="button"
-                                onclick="doctorDemo()"
-                                class="w-full sm:w-auto px-5 py-3
-                                       rounded-full
-                                       bg-[#4B988D]
-                                       text-white
-                                       text-sm font-semibold
-                                       hover:bg-[#3D8379]
-                                       transition">
-
-                            Mulai Konsultasi
-
-                        </button>
-
+                    <div class="text-center mt-6">
+                        <a href="{{ route('consultations.index') }}"
+                           class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#438F83] hover:underline">
+                            <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                            <span>Lihat Riwayat & Daftar Konsultasi Saya</span>
+                        </a>
                     </div>
 
                 </div>
@@ -925,258 +934,197 @@
     }
 
 
-    function quickQuestion(question) {
-
-        document.getElementById('messageInput').value = question;
-
-        sendMessage(new Event('submit'));
-
+    // Auto-scroll chat to bottom on page load
+    const chatContainer = document.getElementById('chatMessages');
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
+    function switchChild(childId) {
+        const url = new URL(window.location.origin + window.location.pathname);
+        if (childId) {
+            url.searchParams.set('child_id', childId);
+        }
+        window.location.href = url.toString();
+    }
 
-    function sendMessage(event) {
+    function quickQuestion(question) {
+        const input = document.getElementById('messageInput');
+        input.value = question;
+        sendMessage(new Event('submit'));
+    }
 
+    async function sendMessage(event) {
         event.preventDefault();
 
-        const input =
-            document.getElementById('messageInput');
-
-        const message =
-            input.value.trim();
+        const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const message = input.value.trim();
 
         if (!message) {
             return;
         }
 
+        const childSelect = document.getElementById('chatChildId');
+        const childId = (childSelect && childSelect.value) ? childSelect.value : null;
 
-        const chat =
-            document.getElementById('chatMessages');
-
-        const empty =
-            document.getElementById('emptyChat');
-
+        const chat = document.getElementById('chatMessages');
+        const empty = document.getElementById('emptyChat');
         if (empty) {
             empty.remove();
         }
 
+        // Render User Message
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-        {{-- USER MESSAGE --}}
-        const userMessage =
-            document.createElement('div');
-
-        userMessage.className =
-            'flex justify-end mb-5';
-
-        userMessage.innerHTML = `
+        const userDiv = document.createElement('div');
+        userDiv.className = 'flex justify-end mb-4';
+        userDiv.innerHTML = `
             <div class="max-w-[88%] sm:max-w-[75%]">
-
-                <div class="bg-[#4B988D]
-                            text-white
-                            px-5 py-3.5
-                            rounded-[20px]
-                            rounded-br-md
-                            text-sm leading-6">
-
+                <div class="bg-[#4B988D] text-white px-5 py-3.5 rounded-[20px] rounded-br-md text-sm leading-relaxed shadow-sm">
                     ${escapeHtml(message)}
-
                 </div>
-
-                <p class="text-[10px]
-                          text-gray-400
-                          text-right mt-1">
-                    Baru saja
+                <p class="text-[10px] text-stone-400 text-right mt-1">
+                    ${timeStr}
                 </p>
-
             </div>
         `;
-
-        chat.appendChild(userMessage);
-
+        chat.appendChild(userDiv);
         input.value = '';
+        input.disabled = true;
+        if (sendBtn) sendBtn.disabled = true;
+        chat.scrollTop = chat.scrollHeight;
 
-        chat.scrollTop =
-            chat.scrollHeight;
-
-
-        {{-- TYPING --}}
-        const typing =
-            document.createElement('div');
-
-        typing.id =
-            'typingMessage';
-
-        typing.className =
-            'flex items-start gap-3 mb-5';
-
+        // Render Typing Indicator
+        const typing = document.createElement('div');
+        typing.id = 'typingMessage';
+        typing.className = 'flex items-start gap-3 mb-4';
         typing.innerHTML = `
-            <div class="w-9 h-9
-                        rounded-xl
-                        bg-[#E2F2ED]
-                        text-[#438F83]
-                        flex items-center justify-center
-                        flex-shrink-0">
-
-                <span class="text-sm">
-                    AI
-                </span>
-
+            <div class="w-9 h-9 rounded-xl bg-[#E2F2ED] text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="text-xs font-bold">AI</span>
             </div>
-
-            <div class="bg-[#F4F5F1]
-                        rounded-[20px]
-                        rounded-tl-md
-                        px-5 py-4">
-
+            <div class="bg-[#F4F5F1] rounded-[20px] rounded-tl-md px-5 py-4 border border-stone-200/50">
                 <div class="flex gap-1.5">
-
-                    <span class="w-2 h-2
-                                 bg-gray-400
-                                 rounded-full
-                                 animate-bounce">
-                    </span>
-
-                    <span class="w-2 h-2
-                                 bg-gray-400
-                                 rounded-full
-                                 animate-bounce">
-                    </span>
-
-                    <span class="w-2 h-2
-                                 bg-gray-400
-                                 rounded-full
-                                 animate-bounce">
-                    </span>
-
+                    <span class="w-2 h-2 bg-stone-400 rounded-full animate-bounce"></span>
+                    <span class="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                    <span class="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
                 </div>
-
             </div>
         `;
-
         chat.appendChild(typing);
+        chat.scrollTop = chat.scrollHeight;
 
-        chat.scrollTop =
-            chat.scrollHeight;
+        try {
+            const response = await fetch("{{ route('ai.chat.send') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    user_message: message,
+                    child_id: childId ? parseInt(childId) : null,
+                }),
+            });
 
-
-        setTimeout(() => {
-
+            const data = await response.json();
             typing.remove();
 
-            const botMessage =
-                document.createElement('div');
-
-            botMessage.className =
-                'flex items-start gap-3 mb-5';
-
-            botMessage.innerHTML = `
-                <div class="w-9 h-9
-                            rounded-xl
-                            bg-[#E2F2ED]
-                            text-[#438F83]
-                            flex items-center justify-center
-                            flex-shrink-0">
-
-                    <span class="text-sm font-bold">
-                        AI
-                    </span>
-
-                </div>
-
-
-                <div class="max-w-[88%] sm:max-w-[75%]">
-
-                    <div class="bg-[#F4F5F1]
-                                text-gray-700
-                                px-5 py-3.5
-                                rounded-[20px]
-                                rounded-tl-md
-                                text-sm leading-6">
-
-                        ${getDemoAnswer(message)}
-
+            if (response.ok && data.success) {
+                const botDiv = document.createElement('div');
+                botDiv.className = 'flex items-start gap-3 mb-4';
+                botDiv.innerHTML = `
+                    <div class="w-9 h-9 rounded-xl bg-[#E2F2ED] text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-xs font-bold">AI</span>
                     </div>
-
-                    <p class="text-[10px]
-                              text-gray-400 mt-1">
-                        NutriBot • Baru saja
-                    </p>
-
+                    <div class="max-w-[88%] sm:max-w-[75%]">
+                        <div class="bg-[#F4F5F1] text-stone-800 px-5 py-3.5 rounded-[20px] rounded-tl-md text-sm leading-relaxed border border-stone-200/50 whitespace-pre-wrap">
+                            ${escapeHtml(data.chat.ai_response)}
+                        </div>
+                        <p class="text-[10px] text-stone-400 mt-1">
+                            NutriBot • Estimasi Edukasi • ${data.chat.created_at || timeStr}
+                        </p>
+                    </div>
+                `;
+                chat.appendChild(botDiv);
+            } else {
+                const errDiv = document.createElement('div');
+                errDiv.className = 'flex items-start gap-3 mb-4';
+                errDiv.innerHTML = `
+                    <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    </div>
+                    <div class="max-w-[88%] sm:max-w-[75%]">
+                        <div class="bg-red-50 text-red-800 px-5 py-3.5 rounded-[20px] rounded-tl-md text-sm leading-relaxed border border-red-200">
+                            <strong>Gagal memproses pertanyaan:</strong> ${escapeHtml(data.message || 'Terjadi kesalahan sistem saat menghubungi AI.')}
+                        </div>
+                    </div>
+                `;
+                chat.appendChild(errDiv);
+                lucide.createIcons();
+            }
+        } catch (err) {
+            typing.remove();
+            const errDiv = document.createElement('div');
+            errDiv.className = 'flex items-start gap-3 mb-4';
+            errDiv.innerHTML = `
+                <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                </div>
+                <div class="max-w-[88%] sm:max-w-[75%]">
+                    <div class="bg-red-50 text-red-800 px-5 py-3.5 rounded-[20px] rounded-tl-md text-sm leading-relaxed border border-red-200">
+                        <strong>Koneksi terputus:</strong> Tidak dapat menghubungi server. Silakan periksa jaringan Anda.
+                    </div>
                 </div>
             `;
-
-            chat.appendChild(botMessage);
-
-            chat.scrollTop =
-                chat.scrollHeight;
-
-        }, 1200);
-
+            chat.appendChild(errDiv);
+            lucide.createIcons();
+        } finally {
+            input.disabled = false;
+            if (sendBtn) sendBtn.disabled = false;
+            input.focus();
+            chat.scrollTop = chat.scrollHeight;
+        }
     }
 
-
-    function getDemoAnswer(message) {
-
-        const text =
-            message.toLowerCase();
-
-
-        if (text.includes('kalori')) {
-
-            return 'Kebutuhan energi anak berbeda berdasarkan usia, jenis kelamin, aktivitas, dan kondisi pertumbuhannya. Untuk pemantauan yang lebih tepat, kebutuhan anak sebaiknya dinilai berdasarkan data pertumbuhan dan saran tenaga kesehatan.';
-
+    async function clearChat() {
+        if (!confirm('Apakah Anda yakin ingin menghapus seluruh riwayat percakapan dengan NutriBot? Tindakan ini tidak dapat dibatalkan.')) {
+            return;
         }
 
+        const childSelect = document.getElementById('chatChildId');
+        const childId = (childSelect && childSelect.value) ? childSelect.value : null;
 
-        if (text.includes('protein')) {
+        try {
+            const response = await fetch("{{ route('ai.chat.clear') }}", {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    child_id: childId ? parseInt(childId) : null,
+                }),
+            });
 
-            return 'Beberapa sumber protein yang dapat menjadi bagian dari menu anak antara lain telur, ikan, ayam, daging, tahu, tempe, dan produk susu yang sesuai untuk anak. Variasikan sumber makanan agar menu tetap seimbang.';
-
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Gagal menghapus riwayat chat.');
+            }
+        } catch (e) {
+            alert('Terjadi kesalahan jaringan saat menghapus riwayat.');
         }
-
-
-        if (
-            text.includes('susah makan') ||
-            text.includes('nafsu')
-        ) {
-
-            return 'Coba buat jadwal makan yang teratur, sajikan porsi kecil terlebih dahulu, variasikan bentuk dan warna makanan, serta hindari memaksa anak makan. Jika masalah makan berlangsung lama atau pertumbuhan terganggu, konsultasikan dengan tenaga kesehatan.';
-
-        }
-
-
-        return 'Saya bisa membantu memberikan informasi umum tentang nutrisi dan tumbuh kembang anak. Coba tanyakan mengenai kebutuhan nutrisi, pilihan makanan, pola makan, atau pemantauan pertumbuhan si kecil.';
-
     }
-
-
-    function clearChat() {
-
-        location.reload();
-
-    }
-
-
-    function doctorDemo() {
-
-        alert(
-            'Fitur konsultasi dokter masih berupa demo front-end GrowCare.'
-        );
-
-    }
-
 
     function escapeHtml(text) {
-
-        const div =
-            document.createElement('div');
-
-        div.textContent =
-            text;
-
+        const div = document.createElement('div');
+        div.textContent = text;
         return div.innerHTML;
-
     }
-
 </script>
 
 </body>

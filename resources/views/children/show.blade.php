@@ -311,6 +311,12 @@
 
             </div>
 
+            @if(session('success'))
+                <div class="mt-4 p-4 rounded-2xl bg-[#EAF5F2] border border-[#BFDCD6] text-[#234D48] flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-[#438F83] shrink-0"></i>
+                    <p class="text-sm font-medium">{{ session('success') }}</p>
+                </div>
+            @endif
 
             {{-- ================= PROFILE HERO ================= --}}
             <div class="mt-7
@@ -431,7 +437,7 @@
                     </div>
 
 
-                    {{-- SCORE DEMO --}}
+                    {{-- STATUS PERTUMBUHAN --}}
                     <div class="bg-white/80
                                 backdrop-blur
                                 rounded-3xl p-5
@@ -441,17 +447,16 @@
                             Status Pertumbuhan
                         </p>
 
-                        <div class="flex items-end gap-1 mt-2">
-
-                            <span class="text-4xl font-bold
-                                         text-[#438F83]">
-                                85
-                            </span>
-
-                            <span class="text-gray-400 mb-1">
-                                /100
-                            </span>
-
+                        <div class="mt-2 min-h-[44px] flex items-center">
+                            @if($latestRecord && $latestRecord->nutrition_status)
+                                <span class="text-2xl sm:text-3xl font-bold text-[#438F83] break-words">
+                                    {{ $latestRecord->nutrition_status }}
+                                </span>
+                            @else
+                                <span class="text-xl sm:text-2xl font-bold text-gray-400">
+                                    Belum dinilai
+                                </span>
+                            @endif
                         </div>
 
                         <div class="w-full h-2
@@ -461,7 +466,7 @@
                             <div class="h-2
                                         bg-[#4B988D]
                                         rounded-full
-                                        w-[85%]">
+                                        {{ $latestRecord && $latestRecord->nutrition_status ? 'w-full' : 'w-0' }}">
                             </div>
 
                         </div>
@@ -469,7 +474,7 @@
                         <p class="text-xs
                                   text-[#438F83]
                                   font-semibold mt-3">
-                            Tumbuh Optimal
+                            {{ $latestRecord ? 'Berdasarkan catatan terakhir' : 'Data belum cukup' }}
                         </p>
 
                     </div>
@@ -552,141 +557,108 @@
                 </div>
 
 
-                {{-- BERAT LAHIR --}}
-                <div class="bg-white
-                            rounded-2xl
-                            border border-stone-100 p-5">
-
+                {{-- BERAT TERAKHIR & LAHIR --}}
+                <div class="bg-white rounded-2xl border border-stone-100 p-5">
                     <div class="flex items-center justify-between">
-
-                        <span class="w-11 h-11
-                                     rounded-xl
-                                     bg-[#F7EFE3]
-                                     text-[#B58A45]
-                                     flex items-center justify-center">
-
-                            <i data-lucide="weight"
-                               class="w-5 h-5"></i>
-
+                        <span class="w-11 h-11 rounded-xl bg-[#F7EFE3] text-[#B58A45] flex items-center justify-center">
+                            <i data-lucide="weight" class="w-5 h-5"></i>
                         </span>
-
-                        <span class="text-xs text-gray-400">
-                            Data lahir
-                        </span>
-
+                        @if($latestRecord)
+                            <span class="text-xs bg-[#EDF5F2] text-[#438F83] px-2 py-0.5 rounded-full font-medium">
+                                Pengukuran Terakhir
+                            </span>
+                        @elseif($child->birth_weight)
+                            <span class="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-medium">
+                                Data Lahir
+                            </span>
+                        @else
+                            <span class="text-xs text-gray-400">
+                                Belum ada data
+                            </span>
+                        @endif
                     </div>
-
                     <p class="text-sm text-gray-400 mt-5">
-                        Berat Lahir
+                        {{ $latestRecord ? 'Berat Terkini' : ($child->birth_weight ? 'Berat Lahir' : 'Berat Terakhir') }}
                     </p>
-
                     <h3 class="text-2xl font-bold mt-1">
-
-                        @if($child->birth_weight)
+                        @if($latestRecord)
+                            {{ $latestRecord->weight }}
+                            <span class="text-sm font-medium text-gray-400">kg</span>
+                        @elseif($child->birth_weight)
                             {{ $child->birth_weight }}
-                            <span class="text-sm
-                                         font-medium
-                                         text-gray-400">
-                                kg
-                            </span>
+                            <span class="text-sm font-medium text-gray-400">kg</span>
                         @else
                             -
                         @endif
-
                     </h3>
-
+                    <p class="text-xs text-gray-400 mt-1">
+                        Data lahir: {{ $child->birth_weight ? $child->birth_weight . ' kg' : '-' }}
+                    </p>
                 </div>
 
-
-                {{-- TINGGI LAHIR --}}
-                <div class="bg-white
-                            rounded-2xl
-                            border border-stone-100 p-5">
-
+                {{-- TINGGI TERAKHIR & LAHIR --}}
+                <div class="bg-white rounded-2xl border border-stone-100 p-5">
                     <div class="flex items-center justify-between">
-
-                        <span class="w-11 h-11
-                                     rounded-xl
-                                     bg-[#E9EFF8]
-                                     text-[#6883A8]
-                                     flex items-center justify-center">
-
-                            <i data-lucide="ruler"
-                               class="w-5 h-5"></i>
-
+                        <span class="w-11 h-11 rounded-xl bg-[#E9EFF8] text-[#6883A8] flex items-center justify-center">
+                            <i data-lucide="ruler" class="w-5 h-5"></i>
                         </span>
-
-                        <span class="text-xs text-gray-400">
-                            Data lahir
-                        </span>
-
+                        @if($latestRecord)
+                            <span class="text-xs bg-[#EDF5F2] text-[#438F83] px-2 py-0.5 rounded-full font-medium">
+                                Pengukuran Terakhir
+                            </span>
+                        @elseif($child->birth_height)
+                            <span class="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-medium">
+                                Data Lahir
+                            </span>
+                        @else
+                            <span class="text-xs text-gray-400">
+                                Belum ada data
+                            </span>
+                        @endif
                     </div>
-
                     <p class="text-sm text-gray-400 mt-5">
-                        Panjang Lahir
+                        {{ $latestRecord ? 'Tinggi Terkini' : ($child->birth_height ? 'Panjang Lahir' : 'Tinggi Terakhir') }}
                     </p>
-
                     <h3 class="text-2xl font-bold mt-1">
-
-                        @if($child->birth_height)
+                        @if($latestRecord)
+                            {{ $latestRecord->height }}
+                            <span class="text-sm font-medium text-gray-400">cm</span>
+                        @elseif($child->birth_height)
                             {{ $child->birth_height }}
-                            <span class="text-sm
-                                         font-medium
-                                         text-gray-400">
-                                cm
-                            </span>
+                            <span class="text-sm font-medium text-gray-400">cm</span>
                         @else
                             -
                         @endif
-
                     </h3>
-
+                    <p class="text-xs text-gray-400 mt-1">
+                        Data lahir: {{ $child->birth_height ? $child->birth_height . ' cm' : '-' }}
+                    </p>
                 </div>
 
-
-                {{-- NUTRISI DEMO --}}
-                <div class="bg-white
-                            rounded-2xl
-                            border border-stone-100 p-5">
-
+                {{-- LINGKAR KEPALA TERAKHIR --}}
+                <div class="bg-white rounded-2xl border border-stone-100 p-5">
                     <div class="flex items-center justify-between">
-
-                        <span class="w-11 h-11
-                                     rounded-xl
-                                     bg-[#F8EAEF]
-                                     text-[#B8758D]
-                                     flex items-center justify-center">
-
-                            <i data-lucide="apple"
-                               class="w-5 h-5"></i>
-
+                        <span class="w-11 h-11 rounded-xl bg-[#F8EAEF] text-[#B8758D] flex items-center justify-center">
+                            <i data-lucide="circle-dot" class="w-5 h-5"></i>
                         </span>
-
-                        <span class="text-xs
-                                     bg-[#EDF5F2]
-                                     text-[#438F83]
-                                     px-2 py-1 rounded-full">
-                            Baik
+                        <span class="text-xs text-gray-400">
+                            {{ $latestRecord ? $latestRecord->measurement_date->format('d/m/Y') : 'Belum diukur' }}
                         </span>
-
                     </div>
-
                     <p class="text-sm text-gray-400 mt-5">
-                        Nutrisi Hari Ini
+                        Lingkar Kepala
                     </p>
-
                     <h3 class="text-2xl font-bold mt-1">
-
-                        520
-
-                        <span class="text-sm
-                                     font-medium
-                                     text-gray-400">
-                            / 850 kcal
-                        </span>
-
+                        @if($latestRecord && $latestRecord->head_circumference)
+                            {{ $latestRecord->head_circumference }}
+                            <span class="text-sm font-medium text-gray-400">cm</span>
+                        @else
+                            -
+                        @endif
                     </h3>
-
+                    <p class="text-xs text-gray-400 mt-1">
+                        Total catatan: {{ $records->count() }} kali
+                    </p>
                 </div>
 
             </div>
@@ -703,210 +675,132 @@
 
 
                     {{-- GRAFIK --}}
-                    <div class="bg-white
-                                rounded-[26px]
-                                border border-stone-100 p-4 sm:p-6">
-
-                        <div class="flex flex-col sm:flex-row
-                                    sm:items-center
-                                    justify-between gap-4">
-
+                    <div class="bg-white rounded-[26px] border border-stone-100 p-4 sm:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-
                                 <h3 class="text-lg font-bold">
                                     Grafik Pertumbuhan
                                 </h3>
-
-                                <p class="text-sm
-                                          text-gray-400 mt-1">
-                                    Contoh perkembangan berat badan
-                                    selama 6 bulan.
+                                <p class="text-sm text-gray-400 mt-1">
+                                    Perkembangan berat badan anak berdasarkan catatan pengukuran.
                                 </p>
-
                             </div>
 
-
-                            <span class="inline-flex
-                                         items-center gap-2
-                                         bg-[#EDF5F2]
-                                         text-[#438F83]
-                                         px-3 py-2
-                                         rounded-xl
-                                         text-xs font-semibold">
-
-                                <span class="w-2 h-2
-                                             rounded-full
-                                             bg-[#4B988D]">
-                                </span>
-
-                                Berat Badan
-
+                            <span class="inline-flex items-center gap-2 bg-[#EDF5F2] text-[#438F83] px-3 py-2 rounded-xl text-xs font-semibold">
+                                <span class="w-2 h-2 rounded-full bg-[#4B988D]"></span>
+                                Berat Badan (kg)
                             </span>
-
                         </div>
 
-
-                        <div class="mt-6 sm:mt-7 h-[230px] sm:h-[280px]">
-                            <canvas id="growthChart"></canvas>
+                        <div class="mt-6 sm:mt-7">
+                            @if($records->isEmpty())
+                                <div class="h-[230px] sm:h-[280px] flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-stone-200 rounded-2xl bg-[#FBFAF6]">
+                                    <span class="w-12 h-12 rounded-full bg-[#EDF5F2] text-[#438F83] flex items-center justify-center mb-3">
+                                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                                    </span>
+                                    <p class="font-semibold text-gray-700">Belum Ada Data Grafik</p>
+                                    <p class="text-xs text-gray-400 mt-1 max-w-xs">Tambahkan catatan pengukuran untuk melihat grafik pertumbuhan berat badan anak.</p>
+                                    <a href="{{ route('children.growth-records.create', $child) }}"
+                                       class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#438F83] hover:bg-[#38786E] text-white text-xs font-semibold rounded-xl transition">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                        Tambah Pengukuran
+                                    </a>
+                                </div>
+                            @else
+                                <div class="h-[230px] sm:h-[280px]">
+                                    <canvas id="growthChart"></canvas>
+                                </div>
+                            @endif
                         </div>
-
                     </div>
 
-
                     {{-- RIWAYAT --}}
-                    <div class="bg-white
-                                rounded-[26px]
-                                border border-stone-100 p-4 sm:p-6">
-
-                        <div class="flex items-center
-                                    justify-between">
-
+                    <div class="bg-white rounded-[26px] border border-stone-100 p-4 sm:p-6">
+                        <div class="flex items-center justify-between">
                             <div>
-
                                 <h3 class="text-lg font-bold">
                                     Riwayat Pertumbuhan
                                 </h3>
-
-                                <p class="text-sm
-                                          text-gray-400 mt-1">
-                                    Data contoh untuk tampilan front-end.
+                                <p class="text-sm text-gray-400 mt-1">
+                                    {{ $records->count() > 0 ? 'Menampilkan ' . $records->count() . ' catatan pengukuran.' : 'Belum ada catatan pengukuran.' }}
                                 </p>
-
                             </div>
 
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('children.growth-records.index', $child) }}"
+                                   class="text-xs font-semibold text-[#438F83] hover:underline px-3 py-2 rounded-xl hover:bg-[#EDF5F2] transition">
+                                    Kelola Semua
+                                </a>
 
-                            <button type="button"
-                                    onclick="showDemoNotice()"
-                                    class="w-10 h-10
-                                           rounded-xl
-                                           bg-[#EDF5F2]
-                                           text-[#438F83]
-                                           hover:bg-[#DCEFEB]
-                                           flex items-center
-                                           justify-center">
-
-                                <i data-lucide="plus"
-                                   class="w-5 h-5"></i>
-
-                            </button>
-
+                                <a href="{{ route('children.growth-records.create', $child) }}"
+                                   title="Tambah Pengukuran"
+                                   class="w-10 h-10 rounded-xl bg-[#EDF5F2] text-[#438F83] hover:bg-[#DCEFEB] flex items-center justify-center transition">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </a>
+                            </div>
                         </div>
-
 
                         <div class="mt-6 space-y-3">
+                            @forelse($records as $record)
+                                <div class="border border-stone-100 rounded-2xl p-4 flex items-center justify-between gap-3 sm:gap-4 min-w-0 hover:bg-[#FBFAF6] transition">
+                                    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                        <span class="w-11 h-11 bg-[#EDF5F2] rounded-xl text-[#438F83] flex items-center justify-center shrink-0">
+                                            <i data-lucide="scale" class="w-5 h-5"></i>
+                                        </span>
 
-                            {{-- ITEM --}}
-                            <div class="border border-stone-100
-                                        rounded-2xl p-4
-                                        flex items-center gap-3 sm:gap-4 min-w-0">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-semibold text-sm">
+                                                {{ $record->measurement_date->translatedFormat('d F Y') }}
+                                            </p>
 
-                                <span class="w-11 h-11
-                                             bg-[#EDF5F2]
-                                             rounded-xl
-                                             text-[#438F83]
-                                             flex items-center
-                                             justify-center">
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                Berat: <span class="font-medium text-gray-700">{{ $record->weight }} kg</span>
+                                                • Tinggi: <span class="font-medium text-gray-700">{{ $record->height }} cm</span>
+                                                @if($record->head_circumference)
+                                                    • LK: <span class="font-medium text-gray-700">{{ $record->head_circumference }} cm</span>
+                                                @endif
+                                            </p>
 
-                                    <i data-lucide="activity"
-                                       class="w-5 h-5"></i>
+                                            @if($record->notes)
+                                                <p class="text-xs text-gray-400 mt-1 italic truncate">
+                                                    {{ $record->notes }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
 
-                                </span>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <a href="{{ route('children.growth-records.edit', [$child, $record]) }}"
+                                           class="p-2 text-gray-400 hover:text-[#438F83] rounded-lg hover:bg-white transition"
+                                           title="Edit Pengukuran">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </a>
 
-                                <div class="flex-1 min-w-0">
-
-                                    <p class="font-semibold">
-                                        Pemeriksaan Bulanan
-                                    </p>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Berat 9.5 kg • Tinggi 82 cm
-                                    </p>
-
+                                        <form action="{{ route('children.growth-records.destroy', [$child, $record]) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan pengukuran ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-white transition"
+                                                    title="Hapus Pengukuran">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
-
-                                <span class="text-[10px] sm:text-xs text-gray-400 shrink-0 text-right">
-                                    Bulan ini
-                                </span>
-
-                            </div>
-
-
-                            {{-- ITEM --}}
-                            <div class="border border-stone-100
-                                        rounded-2xl p-4
-                                        flex items-center gap-3 sm:gap-4 min-w-0">
-
-                                <span class="w-11 h-11
-                                             bg-[#F7EFE3]
-                                             rounded-xl
-                                             text-[#B58A45]
-                                             flex items-center
-                                             justify-center">
-
-                                    <i data-lucide="scale"
-                                       class="w-5 h-5"></i>
-
-                                </span>
-
-                                <div class="flex-1 min-w-0">
-
-                                    <p class="font-semibold">
-                                        Pengukuran Rutin
-                                    </p>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Berat 9.2 kg • Tinggi 81 cm
-                                    </p>
-
+                            @empty
+                                <div class="text-center py-8 text-gray-400 border border-dashed border-stone-200 rounded-2xl bg-[#FBFAF6]">
+                                    <i data-lucide="clipboard-list" class="w-8 h-8 mx-auto mb-2 text-stone-300"></i>
+                                    <p class="text-sm font-medium text-gray-600">Belum ada riwayat pengukuran</p>
+                                    <p class="text-xs text-gray-400 mt-1">Catat berat dan tinggi badan secara berkala.</p>
+                                    <a href="{{ route('children.growth-records.create', $child) }}"
+                                       class="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EDF5F2] text-[#438F83] text-xs font-semibold rounded-xl hover:bg-[#DCEFEB] transition">
+                                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah Sekarang
+                                    </a>
                                 </div>
-
-                                <span class="text-[10px] sm:text-xs text-gray-400 shrink-0 text-right">
-                                    1 bulan lalu
-                                </span>
-
-                            </div>
-
-
-                            {{-- ITEM --}}
-                            <div class="border border-stone-100
-                                        rounded-2xl p-4
-                                        flex items-center gap-3 sm:gap-4 min-w-0">
-
-                                <span class="w-11 h-11
-                                             bg-[#E9EFF8]
-                                             rounded-xl
-                                             text-[#6883A8]
-                                             flex items-center
-                                             justify-center">
-
-                                    <i data-lucide="ruler"
-                                       class="w-5 h-5"></i>
-
-                                </span>
-
-                                <div class="flex-1 min-w-0">
-
-                                    <p class="font-semibold">
-                                        Pengukuran Rutin
-                                    </p>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Berat 8.9 kg • Tinggi 80 cm
-                                    </p>
-
-                                </div>
-
-                                <span class="text-[10px] sm:text-xs text-gray-400 shrink-0 text-right">
-                                    2 bulan lalu
-                                </span>
-
-                            </div>
-
+                            @endforelse
                         </div>
-
                     </div>
 
                 </div>
@@ -959,7 +853,7 @@
                                 </span>
 
                                 <span class="font-semibold">
-                                    Optimal
+                                    {{ $latestRecord?->nutrition_status ?: 'Belum dinilai' }}
                                 </span>
 
                             </div>
@@ -974,7 +868,7 @@
                                 </span>
 
                                 <span class="font-semibold">
-                                    Baik
+                                    {{ $nutritionStatus }}
                                 </span>
 
                             </div>
@@ -989,7 +883,7 @@
                                 </span>
 
                                 <span class="font-semibold">
-                                    Normal
+                                    {{ $activityStatus }}
                                 </span>
 
                             </div>
@@ -997,18 +891,15 @@
                         </div>
 
 
-                        <button type="button"
-                                onclick="showDemoNotice()"
-                                class="w-full mt-5
-                                       bg-white
-                                       hover:bg-white/90
-                                       text-[#234D48]
-                                       rounded-xl py-3
-                                       font-semibold transition">
-
-                            Lihat Assessment
-
-                        </button>
+                        <a href="{{ route('children.growth-records.index', $child) }}"
+                           class="w-full mt-5 block text-center
+                                  bg-white
+                                  hover:bg-white/90
+                                  text-[#234D48]
+                                  rounded-xl py-3
+                                  font-semibold transition">
+                            Lihat Semua Catatan
+                        </a>
 
                     </div>
 
@@ -1035,11 +926,11 @@
                             <div>
 
                                 <p class="text-xs text-gray-400">
-                                    Pendamping Kesehatan
+                                    {{ $assignedDoctor ? 'Dokter Konsultasi Terakhir' : 'Pendamping Kesehatan' }}
                                 </p>
 
                                 <h3 class="font-bold">
-                                    dr. Maya Putri, Sp.A
+                                    {{ $assignedDoctor ? $assignedDoctor->name : 'Belum ada dokter' }}
                                 </h3>
 
                             </div>
@@ -1055,14 +946,16 @@
                                       text-gray-400
                                       leading-relaxed">
 
-                                Konsultasikan pertanyaan
-                                seputar tumbuh kembang
-                                dan kebutuhan nutrisi anak.
+                                @if($assignedDoctor)
+                                    {{ $assignedDoctor->specialization ?? 'Dokter Spesialis Anak' }} • Konsultasikan pertumbuhan si kecil.
+                                @else
+                                    Belum ada dokter yang dikonsultasikan untuk si kecil. Ajukan konsultasi dengan dokter spesialis kami.
+                                @endif
 
                             </p>
 
 
-                            <a href="{{ route('ai.chat') }}"
+                            <a href="{{ route('consultations.create', ['child_id' => $child->id]) }}"
                                class="mt-4 w-full
                                       inline-flex
                                       items-center
@@ -1073,10 +966,10 @@
                                       rounded-xl py-3
                                       font-semibold transition">
 
-                                <i data-lucide="message-circle"
+                                <i data-lucide="stethoscope"
                                    class="w-4 h-4"></i>
 
-                                Konsultasi
+                                Konsultasi Dokter
 
                             </a>
 
@@ -1249,85 +1142,59 @@
 <script>
     lucide.createIcons();
 
+    const chartData = @json($chartData ?? ['labels' => [], 'weights' => [], 'heights' => []]);
     const ctx = document.getElementById('growthChart');
 
-    if (ctx) {
-
+    if (ctx && chartData && chartData.labels && chartData.labels.length > 0) {
         new Chart(ctx, {
             type: 'line',
-
             data: {
-                labels: [
-                    'Apr',
-                    'Mei',
-                    'Jun',
-                    'Jul',
-                    'Agu',
-                    'Sep'
-                ],
-
+                labels: chartData.labels,
                 datasets: [{
                     label: 'Berat Badan',
-
-                    data: [
-                        8.1,
-                        8.4,
-                        8.7,
-                        8.9,
-                        9.2,
-                        9.5
-                    ],
-
+                    data: chartData.weights,
                     borderColor: '#4B988D',
                     backgroundColor: 'rgba(75, 152, 141, 0.10)',
-
                     borderWidth: 3,
-                    tension: 0.4,
-
+                    tension: 0.35,
                     pointRadius: 4,
                     pointHoverRadius: 6,
-
                     pointBackgroundColor: '#4B988D',
-
                     fill: true
                 }]
             },
-
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Berat Badan: ' + context.parsed.y + ' kg';
+                            }
+                        }
                     }
                 },
-
                 scales: {
                     x: {
                         grid: {
                             display: false
                         },
-
                         border: {
                             display: false
                         }
                     },
-
                     y: {
                         beginAtZero: false,
-
-                        suggestedMin: 7,
-                        suggestedMax: 11,
-
                         grid: {
                             color: '#F0EFEA'
                         },
-
                         border: {
                             display: false
                         },
-
                         ticks: {
                             callback: function(value) {
                                 return value + ' kg';
@@ -1337,16 +1204,6 @@
                 }
             }
         });
-
-    }
-
-
-    function showDemoNotice() {
-
-        alert(
-            'Fitur ini masih berupa demo front-end GrowCare.'
-        );
-
     }
 </script>
 

@@ -171,6 +171,38 @@
             </a>
 
 
+            {{-- KONSULTASI DOKTER --}}
+            <a href="{{ route('consultations.index') }}"
+               class="relative flex items-center gap-4
+                      px-4 py-4 rounded-2xl transition
+                      {{ $activeMenu === 'consultations'
+                            ? 'bg-[#DCEFEB] text-[#438F83] font-semibold'
+                            : 'text-gray-600 hover:bg-white' }}">
+
+                @if($activeMenu === 'consultations')
+                    <span class="absolute left-0
+                                 w-1 h-9
+                                 bg-[#4DA397]
+                                 rounded-r-full">
+                    </span>
+                @endif
+
+                <span class="w-10 h-10 rounded-full
+                             flex items-center justify-center
+                             {{ $activeMenu === 'consultations'
+                                ? 'bg-[#4B988D] text-white'
+                                : 'bg-white' }}">
+
+                    <i data-lucide="stethoscope"
+                       class="w-5 h-5"></i>
+
+                </span>
+
+                Konsultasi
+
+            </a>
+
+
             {{-- DATA ANAK --}}
             <a href="{{ route('children.index') }}"
                class="relative flex items-center gap-4

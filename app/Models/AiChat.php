@@ -15,6 +15,7 @@ class AiChat extends Model
         'user_message',
         'ai_response',
         'topic',
+        'model_used',
     ];
 
     public function user()

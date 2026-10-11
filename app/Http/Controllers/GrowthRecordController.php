@@ -2,52 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GrowthRecordRequest;
 use App\Models\Child;
 use App\Models\GrowthRecord;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class GrowthRecordController extends Controller
 {
-    public function index(Child $child)
+    /**
+     * Display a listing of growth records for a child.
+     */
+    public function index(Child $child): View
     {
         $this->authorizeChild($child);
 
         $records = $child->growthRecords()
             ->orderBy('measurement_date', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
 
-        return view('growth.index', compact('child', 'records'));
+        $latestRecord = $records->first();
+
+        return view('growth.index', compact('child', 'records', 'latestRecord'));
     }
 
-    public function create(Child $child)
+    /**
+     * Show the form for creating a new growth record.
+     */
+    public function create(Child $child): View
     {
         $this->authorizeChild($child);
 
         return view('growth.create', compact('child'));
     }
 
-    public function store(Request $request, Child $child)
+    /**
+     * Store a newly created growth record in storage.
+     */
+    public function store(GrowthRecordRequest $request, Child $child): RedirectResponse
     {
         $this->authorizeChild($child);
 
-        $validated = $request->validate([
-            'measurement_date' => ['required', 'date', 'before_or_equal:today'],
-            'weight' => ['required', 'numeric', 'min:0.1', 'max:200'],
-            'height' => ['required', 'numeric', 'min:1', 'max:250'],
-            'head_circumference' => ['nullable', 'numeric', 'min:1', 'max:100'],
-            'nutrition_status' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        $child->growthRecords()->create($validated);
+        $child->growthRecords()->create($request->validated());
 
         return redirect()
-            ->route('growth.index', $child)
-            ->with('success', 'Data pertumbuhan berhasil ditambahkan.');
+            ->route('children.growth-records.index', $child)
+            ->with('success', 'Data pengukuran pertumbuhan berhasil ditambahkan.');
     }
 
-    public function edit(Child $child, GrowthRecord $record)
+    /**
+     * Display the specified growth record.
+     */
+    public function show(Child $child, GrowthRecord $record): RedirectResponse
+    {
+        $this->authorizeChild($child);
+        $this->authorizeRecord($child, $record);
+
+        return redirect()->route('children.growth-records.index', $child);
+    }
+
+    /**
+     * Show the form for editing the specified growth record.
+     */
+    public function edit(Child $child, GrowthRecord $record): View
     {
         $this->authorizeChild($child);
         $this->authorizeRecord($child, $record);
@@ -55,31 +74,28 @@ class GrowthRecordController extends Controller
         return view('growth.edit', compact('child', 'record'));
     }
 
+    /**
+     * Update the specified growth record in storage.
+     */
     public function update(
-        Request $request,
+        GrowthRecordRequest $request,
         Child $child,
         GrowthRecord $record
-    ) {
+    ): RedirectResponse {
         $this->authorizeChild($child);
         $this->authorizeRecord($child, $record);
 
-        $validated = $request->validate([
-            'measurement_date' => ['required', 'date', 'before_or_equal:today'],
-            'weight' => ['required', 'numeric', 'min:0.1', 'max:200'],
-            'height' => ['required', 'numeric', 'min:1', 'max:250'],
-            'head_circumference' => ['nullable', 'numeric', 'min:1', 'max:100'],
-            'nutrition_status' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        $record->update($validated);
+        $record->update($request->validated());
 
         return redirect()
-            ->route('growth.index', $child)
-            ->with('success', 'Data pertumbuhan berhasil diperbarui.');
+            ->route('children.growth-records.index', $child)
+            ->with('success', 'Data pengukuran pertumbuhan berhasil diperbarui.');
     }
 
-    public function destroy(Child $child, GrowthRecord $record)
+    /**
+     * Remove the specified growth record from storage.
+     */
+    public function destroy(Child $child, GrowthRecord $record): RedirectResponse
     {
         $this->authorizeChild($child);
         $this->authorizeRecord($child, $record);
@@ -87,19 +103,23 @@ class GrowthRecordController extends Controller
         $record->delete();
 
         return redirect()
-            ->route('growth.index', $child)
-            ->with('success', 'Data pertumbuhan berhasil dihapus.');
+            ->route('children.growth-records.index', $child)
+            ->with('success', 'Data pengukuran pertumbuhan berhasil dihapus.');
     }
 
+    /**
+     * Ensure the authenticated parent owns the child.
+     */
     private function authorizeChild(Child $child): void
     {
         abort_unless($child->user_id === Auth::id(), 403);
     }
 
-    private function authorizeRecord(
-        Child $child,
-        GrowthRecord $record
-    ): void {
+    /**
+     * Ensure the record belongs to the child specified in the URL.
+     */
+    private function authorizeRecord(Child $child, GrowthRecord $record): void
+    {
         abort_unless($record->child_id === $child->id, 404);
     }
 }

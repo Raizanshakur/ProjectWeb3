@@ -295,6 +295,26 @@
             </div>
 
 
+            {{-- ALERTS --}}
+            @if(session('status') === 'profile-updated')
+                <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+                    <span class="text-sm font-medium">Profil berhasil diperbarui.</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex items-center gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 shrink-0"></i>
+                    <div class="text-sm font-medium">
+                        @foreach($errors->all() as $error)
+                            <p>{{ $error }}</p>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+
             {{-- ================= PROFILE HERO ================= --}}
             <div class="relative overflow-hidden
                         bg-gradient-to-br
@@ -506,7 +526,7 @@
                     <div>
 
                         <p class="text-2xl font-bold">
-                            12
+                            {{ $assessmentCount ?? 0 }}
                         </p>
 
                         <p class="text-xs text-gray-400">
@@ -543,7 +563,7 @@
                     <div>
 
                         <p class="text-2xl font-bold">
-                            24
+                            {{ $foodScanCount ?? 0 }}
                         </p>
 
                         <p class="text-xs text-gray-400">

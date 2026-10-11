@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\GrowthRecord;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -20,8 +22,16 @@ class ProfileController extends Controller
             return redirect()->route('dokter.profil');
         }
 
+        $user = $request->user();
+        $childrenCount = $user->children()->count();
+        $assessmentCount = GrowthRecord::whereIn('child_id', $user->children()->select('id'))->count();
+        $foodScanCount = $user->foodAnalyses()->count();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'childrenCount' => $childrenCount,
+            'assessmentCount' => $assessmentCount,
+            'foodScanCount' => $foodScanCount,
         ]);
     }
 
@@ -54,9 +64,20 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        $imagePaths = $user->foodAnalyses()
+            ->whereNotNull('food_image')
+            ->pluck('food_image')
+            ->all();
+
         Auth::logout();
 
         $user->delete();
+
+        foreach ($imagePaths as $path) {
+            if (Storage::disk('local')->exists($path)) {
+                Storage::disk('local')->delete($path);
+            }
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -64,3 +85,4 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 }
+

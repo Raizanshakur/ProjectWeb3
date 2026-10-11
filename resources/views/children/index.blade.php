@@ -315,6 +315,13 @@
 
             </div>
 
+            @if(session('success'))
+                <div class="mt-6 p-4 rounded-2xl bg-[#EAF5F2] border border-[#BFDCD6] text-[#234D48] flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-[#438F83] shrink-0"></i>
+                    <p class="text-sm font-medium">{{ session('success') }}</p>
+                </div>
+            @endif
+
 
             {{-- ================= SUMMARY ================= --}}
             <div class="grid grid-cols-1
@@ -574,22 +581,7 @@
                                         <p class="font-semibold
                                                   text-sm mt-2">
 
-                                            @if($child->birth_date)
-
-                                                @php
-                                                    $birthDate = \Carbon\Carbon::parse($child->birth_date);
-                                                    $age = $birthDate->diff(now());
-                                                @endphp
-
-                                                @if($age->y > 0)
-                                                    {{ $age->y }} th {{ $age->m }} bln
-                                                @else
-                                                    {{ $age->m }} bulan
-                                                @endif
-
-                                            @else
-                                                -
-                                            @endif
+                                            {{ $child->formatted_age }}
 
                                         </p>
 
@@ -675,10 +667,15 @@
                                                 Status Pertumbuhan
                                             </p>
 
+                                            @php
+                                                $latestGrowth = $child->latestGrowthRecord;
+                                                $growthStatus = $latestGrowth?->nutrition_status ?: 'Belum dinilai';
+                                            @endphp
+
                                             <p class="font-bold
                                                       text-[#438F83]
                                                       mt-1">
-                                                Tumbuh Optimal
+                                                {{ $growthStatus }}
                                             </p>
 
                                         </div>

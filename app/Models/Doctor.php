@@ -41,4 +41,12 @@ class Doctor extends Model
     {
         return $this->hasMany(Consultation::class);
     }
+
+    // ── Scopes ───────────────────────────────────────────
+
+    public function scopeAvailable($query)
+    {
+        return $query->where('is_available', true)
+            ->whereHas('user', fn ($q) => $q->where('role', 'doctor'));
+    }
 }

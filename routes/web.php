@@ -1,8 +1,14 @@
 
 <?php
 
+use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ChildController;
+use App\Http\Controllers\ConsultationController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FoodScanController;
+use App\Http\Controllers\GrowthRecordController;
+use App\Http\Controllers\NutritionController;
 use App\Http\Controllers\Doctor\DoctorConsultationController;
 use App\Http\Controllers\Doctor\DoctorDashboardController;
 use App\Http\Controllers\Doctor\DoctorPatientsController;
@@ -34,33 +40,48 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified', 'role:parent'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        $children = auth()->user()
-            ->children()
-            ->latest()
-            ->get();
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        $selectedChild = $children->first();
+    Route::get('/nutrition', [NutritionController::class, 'index'])->name('nutrition');
+    Route::post('/nutrition/meals', [NutritionController::class, 'store'])->name('nutrition.meals.store');
+    Route::put('/nutrition/meals/{meal}', [NutritionController::class, 'update'])->name('nutrition.meals.update');
+    Route::delete('/nutrition/meals/{meal}', [NutritionController::class, 'destroy'])->name('nutrition.meals.destroy');
 
-        return view('dashboard', compact(
-            'children',
-            'selectedChild'
-        ));
-    })->name('dashboard');
+    // Route nested /children/{child}/meals untuk keselarasan kontrak desain
+    Route::post('/children/{child}/meals', [NutritionController::class, 'storeForChild'])->name('children.meals.store');
+    Route::put('/children/{child}/meals/{meal}', [NutritionController::class, 'updateForChild'])->name('children.meals.update');
+    Route::delete('/children/{child}/meals/{meal}', [NutritionController::class, 'destroyForChild'])->name('children.meals.destroy');
 
-    Route::get('/nutrition', function () {
-        return view('nutrition');
-    })->name('nutrition');
+    Route::get('/food-scan', [FoodScanController::class, 'index'])->name('food.scan');
+    Route::prefix('food-scan')->name('food.scan.')->group(function () {
+        Route::post('/', [FoodScanController::class, 'store'])
+            ->middleware('throttle:15,1')
+            ->name('store');
+        Route::get('/{analysis}', [FoodScanController::class, 'show'])->name('show');
+        Route::get('/{analysis}/status', [FoodScanController::class, 'status'])->name('status');
+        Route::get('/{analysis}/image', [FoodScanController::class, 'image'])->name('image');
+        Route::post('/{analysis}/confirm', [FoodScanController::class, 'confirm'])->name('confirm');
+        Route::delete('/{analysis}', [FoodScanController::class, 'destroy'])->name('destroy');
+    });
 
-    Route::get('/food-scan', function () {
-        return view('food-scan');
-    })->name('food.scan');
-
-    Route::get('/tanya-ai', function () {
-        return view('ai-chat');
-    })->name('ai.chat');
+    Route::get('/tanya-ai', [AiChatController::class, 'index'])->name('ai.chat');
+    Route::post('/tanya-ai', [AiChatController::class, 'send'])
+        ->middleware('throttle:15,1')
+        ->name('ai.chat.send');
+    Route::delete('/tanya-ai', [AiChatController::class, 'clear'])
+        ->name('ai.chat.clear');
 
     Route::resource('children', ChildController::class);
+    Route::resource('children.growth-records', GrowthRecordController::class)
+        ->parameters(['growth-records' => 'record']);
+
+    // Konsultasi Dokter dari Sisi Orang Tua
+    Route::get('/consultations', [ConsultationController::class, 'index'])->name('consultations.index');
+    Route::get('/consultations/create', [ConsultationController::class, 'create'])->name('consultations.create');
+    Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
+    Route::get('/consultations/{consultation}', [ConsultationController::class, 'show'])->name('consultations.show');
+    Route::post('/consultations/{consultation}/cancel', [ConsultationController::class, 'cancel'])->name('consultations.cancel');
+    Route::delete('/consultations/{consultation}', [ConsultationController::class, 'cancel'])->name('consultations.destroy');
 });
 
 /*

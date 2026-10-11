@@ -404,7 +404,7 @@
                                   class="text-[10px] sm:text-xs mt-2
                                          font-semibold
                                          text-gray-400">
-                                Pendamping
+                                Konfirmasi
                             </span>
 
                         </div>
@@ -918,216 +918,59 @@
                     {{-- ================================================= --}}
                     {{-- STEP 3 --}}
                     {{-- ================================================= --}}
+                    {{-- STEP 3 : KONFIRMASI & INFORMASI KONSULTASI        --}}
+                    {{-- ================================================= --}}
                     <div id="step3"
                          class="hidden
                                 px-6 md:px-12
                                 pt-9 pb-11">
 
-
                         <div class="text-center">
-
                             <span class="w-14 h-14 sm:w-16 sm:h-16 mx-auto
                                          rounded-2xl
                                          bg-[#E5F3EF]
                                          text-[#438F83]
                                          flex items-center
                                          justify-center">
-
-                                <i data-lucide="stethoscope"
+                                <i data-lucide="check-circle"
                                    class="w-8 h-8"></i>
-
                             </span>
-
 
                             <h2 class="text-xl sm:text-2xl md:text-3xl
                                        font-bold mt-5">
-
-                                Pilih pendamping kesehatan
-
+                                Siap Menyimpan Data Anak
                             </h2>
 
-
-                            <p class="text-gray-400 mt-2">
-                                Pilihan ini masih berupa tampilan
-                                front-end GrowCare.
+                            <p class="text-gray-500 mt-2 max-w-md mx-auto text-sm leading-relaxed">
+                                Profil si kecil akan disimpan ke akun GrowCare Anda untuk pemantauan tumbuh kembang dan nutrisi.
                             </p>
-
                         </div>
 
-
-                        <div class="max-w-xl mx-auto
-                                    mt-8 space-y-3">
-
-
-                            {{-- DOCTOR 1 --}}
-                            <button
-                                type="button"
-                                id="doctor1"
-                                onclick="selectDoctor(
-                                    'dr. Maya Putri, Sp.A',
-                                    'doctor1'
-                                )"
-
-                                class="doctor-card
-                                       w-full text-left
-                                       border-2 border-stone-100
-                                       bg-[#FAF9F5]
-                                       rounded-2xl p-3.5 sm:p-4
-                                       flex items-center gap-3 sm:gap-4
-                                       hover:border-[#4B988D]
-                                       transition">
-
-                                <span class="w-12 h-12 sm:w-14 sm:h-14 shrink-0
-                                             rounded-2xl
-                                             bg-[#E5F3EF]
-                                             text-[#438F83]
-                                             flex items-center
-                                             justify-center">
-
-                                    <i data-lucide="stethoscope"
-                                       class="w-6 h-6"></i>
-
+                        <div class="max-w-xl mx-auto mt-8 space-y-4">
+                            <div class="bg-[#EFF7F4] border border-[#CDE5DE] rounded-2xl p-5 flex items-start gap-4">
+                                <span class="w-10 h-10 rounded-xl bg-white text-[#438F83] flex items-center justify-center shrink-0 shadow-sm">
+                                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
                                 </span>
-
-
-                                <div class="flex-1 min-w-0">
-
-                                    <h3 class="font-bold break-words">
-                                        dr. Maya Putri, Sp.A
-                                    </h3>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Spesialis Anak • Tersedia
+                                <div>
+                                    <h3 class="font-bold text-sm text-[#202725]">Konsultasi Dokter Terverifikasi</h3>
+                                    <p class="text-xs text-gray-600 mt-1 leading-relaxed">
+                                        Setelah profil anak tersimpan, Anda dapat memilih dokter spesialis anak dan mengajukan konsultasi resmi secara terpisah melalui menu <strong>Konsultasi</strong>.
                                     </p>
-
                                 </div>
+                            </div>
 
-
-                                <span class="doctor-radio
-                                             w-6 h-6
-                                             border-2
-                                             border-stone-200
-                                             rounded-full">
+                            <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-5 flex items-start gap-4">
+                                <span class="w-10 h-10 rounded-xl bg-white text-stone-500 flex items-center justify-center shrink-0 shadow-sm">
+                                    <i data-lucide="shield-check" class="w-5 h-5"></i>
                                 </span>
-
-                            </button>
-
-
-                            {{-- DOCTOR 2 --}}
-                            <button
-                                type="button"
-                                id="doctor2"
-                                onclick="selectDoctor(
-                                    'dr. Andi Pratama, Sp.A',
-                                    'doctor2'
-                                )"
-
-                                class="doctor-card
-                                       w-full text-left
-                                       border-2 border-stone-100
-                                       bg-[#FAF9F5]
-                                       rounded-2xl p-3.5 sm:p-4
-                                       flex items-center gap-3 sm:gap-4
-                                       hover:border-[#4B988D]
-                                       transition">
-
-                                <span class="w-12 h-12 sm:w-14 sm:h-14 shrink-0
-                                             rounded-2xl
-                                             bg-[#F6F0E5]
-                                             text-[#B08A48]
-                                             flex items-center
-                                             justify-center">
-
-                                    <i data-lucide="stethoscope"
-                                       class="w-6 h-6"></i>
-
-                                </span>
-
-
-                                <div class="flex-1 min-w-0">
-
-                                    <h3 class="font-bold break-words">
-                                        dr. Andi Pratama, Sp.A
-                                    </h3>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Spesialis Anak • Tersedia
+                                <div>
+                                    <h3 class="font-bold text-sm text-[#202725]">Privasi & Keamanan Data</h3>
+                                    <p class="text-xs text-gray-600 mt-1 leading-relaxed">
+                                        Data anak dan catatan pertumbuhan hanya dapat diakses oleh Anda sebagai orang tua dan dokter yang Anda pilih saat berkonsultasi.
                                     </p>
-
                                 </div>
-
-
-                                <span class="doctor-radio
-                                             w-6 h-6
-                                             border-2
-                                             border-stone-200
-                                             rounded-full">
-                                </span>
-
-                            </button>
-
-
-                            {{-- SKIP --}}
-                            <button
-                                type="button"
-                                id="doctorSkip"
-                                onclick="selectDoctor(
-                                    '',
-                                    'doctorSkip'
-                                )"
-
-                                class="doctor-card
-                                       w-full text-left
-                                       border-2
-                                       border-dashed
-                                       border-stone-200
-                                       bg-white
-                                       rounded-2xl p-3.5 sm:p-4
-                                       flex items-center gap-3 sm:gap-4
-                                       hover:border-[#4B988D]
-                                       transition">
-
-                                <span class="w-12 h-12 sm:w-14 sm:h-14 shrink-0
-                                             rounded-2xl
-                                             bg-gray-100
-                                             text-gray-400
-                                             flex items-center
-                                             justify-center">
-
-                                    <i data-lucide="user-x"
-                                       class="w-6 h-6"></i>
-
-                                </span>
-
-
-                                <div class="flex-1 min-w-0">
-
-                                    <h3 class="font-semibold break-words">
-                                        Pilih Nanti
-                                    </h3>
-
-                                    <p class="text-xs
-                                              text-gray-400 mt-1">
-                                        Dokter dapat dipilih
-                                        setelah profil dibuat.
-                                    </p>
-
-                                </div>
-
-                            </button>
-
+                            </div>
                         </div>
-
-
-                        {{-- Tidak memakai name karena dokter belum ada di DB --}}
-                        <input
-                            type="hidden"
-                            id="doctor"
-                            value=""
-                        >
-
 
                         <div class="max-w-xl mx-auto
                                     grid grid-cols-1 min-[380px]:grid-cols-2
@@ -1136,22 +979,17 @@
                             <button
                                 type="button"
                                 onclick="showStep(2)"
-
                                 class="border border-stone-200
                                        hover:bg-stone-50
                                        rounded-2xl py-4
                                        font-semibold
                                        transition">
-
                                 Kembali
-
                             </button>
-
 
                             <button
                                 type="submit"
                                 id="submitButton"
-
                                 class="bg-[#4B988D]
                                        hover:bg-[#3E8379]
                                        text-white
@@ -1160,16 +998,11 @@
                                        flex items-center
                                        justify-center gap-2
                                        transition">
-
                                 <i data-lucide="check"
                                    class="w-5 h-5"></i>
-
-                                Simpan Anak
-
+                                Simpan Profil Anak
                             </button>
-
                         </div>
-
                     </div>
 
                 </form>
