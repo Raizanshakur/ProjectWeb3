@@ -11,68 +11,42 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8F7F2; }
     </style>
 </head>
-<body class="text-[#202725] min-h-screen flex flex-col md:flex-row">
+<body class="bg-[#F8FAFD] text-[#24323D] antialiased overflow-x-hidden">
+
+<div class="min-h-screen flex">
 
     <!-- Mobile Header -->
-    <div class="md:hidden bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
-                GC
-            </div>
-            <div>
-                <span class="font-bold text-xl text-blue-500 tracking-tight">Grow</span><span class="font-bold text-xl tracking-tight text-[#202725]">Care</span>
-                <span class="text-[10px] font-bold text-blue-500 block -mt-1 tracking-wider">DOKTER</span>
-            </div>
+    <header class="lg:hidden fixed top-0 left-0 right-0 z-40
+                   h-16 bg-[#FBFAF6]/95 backdrop-blur
+                   border-b border-[#DFEBF5]
+                   flex items-center justify-between px-4 sm:px-6">
+        <a href="{{ route('dokter.dashboard') }}" class="flex items-center gap-2">
+            <span class="w-9 h-9 rounded-full bg-[#DCECF8] text-[#548FB7] flex items-center justify-center flex-shrink-0">
+                <i data-lucide="sprout" class="w-5 h-5"></i>
+            </span>
+            <span class="text-xl font-bold tracking-tight text-[#24323D]">
+                <span class="text-[#548FB7]">Grow</span>Care
+            </span>
+            <span class="text-[10px] font-bold text-[#548FB7] tracking-wider uppercase ml-1">DOKTER</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('dokter.profil') }}"
+               class="w-10 h-10 rounded-full bg-[#DCECF8] text-[#548FB7] flex items-center justify-center overflow-hidden border border-[#DFEBF5]">
+                @if(Auth::user()?->doctor?->photo)
+                    <img src="{{ asset('storage/' . Auth::user()->doctor->photo) }}" class="w-full h-full object-cover">
+                @else
+                    <i data-lucide="user-round" class="w-5 h-5"></i>
+                @endif
+            </a>
         </div>
-        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-            <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
-        </div>
-    </div>
+    </header>
 
-    <!-- Desktop Sidebar -->
-    <aside class="hidden md:flex flex-col w-[285px] bg-[#FBFAF6] border-r border-stone-100 h-screen sticky top-0 z-40 px-6 py-8">
-        <div class="flex items-center gap-2 px-2 mb-12">
-            <div class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center font-bold text-lg">
-                GC
-            </div>
-            <div>
-                <span class="font-bold text-2xl text-blue-500 tracking-tight">Grow</span><span class="font-bold text-2xl tracking-tight text-[#202725]">Care</span>
-                <span class="text-xs font-bold text-blue-500 block -mt-1 tracking-wider">DOKTER</span>
-            </div>
-        </div>
-
-        <nav class="flex-1 space-y-2">
-            <a href="{{ route('dokter.dashboard') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-stone-500 hover:bg-stone-50 hover:text-[#202725] transition-colors font-medium">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                Dashboard
-            </a>
-            <a href="{{ route('dokter.konsultasi') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-stone-500 hover:bg-stone-50 hover:text-[#202725] transition-colors font-medium">
-                <i data-lucide="message-square" class="w-5 h-5"></i>
-                Konsultasi
-            </a>
-            <a href="{{ route('dokter.pasien') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-blue-50 text-blue-600 font-semibold transition-colors">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                Data Pasien
-            </a>
-            <a href="{{ route('dokter.profil') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-stone-500 hover:bg-stone-50 hover:text-[#202725] transition-colors font-medium">
-                <i data-lucide="user" class="w-5 h-5"></i>
-                Profil Saya
-            </a>
-        </nav>
-
-        <div class="mt-auto">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-colors font-medium">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                    Keluar
-                </button>
-            </form>
-        </div>
-    </aside>
+    <!-- Sidebar -->
+    <x-growcare-doctor-sidebar active="patients" />
 
     <!-- Main Content -->
-    <main class="flex-1 p-6 md:p-10 pb-28 md:pb-10 max-w-[1200px] mx-auto w-full">
+    <main class="w-full min-w-0 lg:ml-[285px] pt-16 lg:pt-0 pb-24 lg:pb-12">
+        <div class="max-w-[1450px] mx-auto w-full min-w-0 px-4 sm:px-6 lg:px-10 py-6 lg:py-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-4">
@@ -383,27 +357,35 @@
             <p class="text-stone-500 text-sm">Coba sesuaikan kata kunci pencarian Anda.</p>
         </div>
 
+        </div>
     </main>
+</div>
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-stone-200 px-6 py-4 z-50 flex justify-between items-center pb-safe">
-        <a href="{{ route('dokter.dashboard') }}" class="flex flex-col items-center gap-1 text-stone-400">
-            <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
-            <span class="text-[10px] font-medium">Home</span>
-        </a>
-        <a href="{{ route('dokter.konsultasi') }}" class="flex flex-col items-center gap-1 text-stone-400">
-            <i data-lucide="message-square" class="w-6 h-6"></i>
-            <span class="text-[10px] font-medium">Chat</span>
-        </a>
-        <a href="{{ route('dokter.pasien') }}" class="flex flex-col items-center gap-1 text-blue-600">
-            <div class="relative">
-                <i data-lucide="users" class="w-6 h-6"></i>
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DFEBF5] flex items-center justify-around px-2 py-3 z-30 pb-safe">
+        <a href="{{ route('dokter.dashboard') }}" class="flex flex-col items-center gap-1 p-2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-[#718096]">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             </div>
-            <span class="text-[10px] font-medium">Pasien</span>
+            <span class="text-[10px] font-semibold text-[#718096]">Beranda</span>
         </a>
-        <a href="{{ route('dokter.profil') }}" class="flex flex-col items-center gap-1 text-stone-400">
-            <i data-lucide="user" class="w-6 h-6"></i>
-            <span class="text-[10px] font-medium">Profil</span>
+        <a href="{{ route('dokter.konsultasi') }}" class="flex flex-col items-center gap-1 p-2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-[#718096]">
+                <i data-lucide="message-square" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-[#718096]">Konsultasi</span>
+        </a>
+        <a href="{{ route('dokter.pasien') }}" class="flex flex-col items-center gap-1 p-2">
+            <div class="w-8 h-8 rounded-full bg-[#DCECF8] flex items-center justify-center text-[#548FB7]">
+                <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <span class="text-[10px] font-bold text-[#548FB7]">Pasien</span>
+        </a>
+        <a href="{{ route('dokter.profil') }}" class="flex flex-col items-center gap-1 p-2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-[#718096]">
+                <i data-lucide="user-round" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-[#718096]">Profil</span>
         </a>
     </nav>
 

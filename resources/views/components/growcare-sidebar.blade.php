@@ -1,11 +1,31 @@
 @php
-    $activeMenu = $active ?? '';
+    $rawActive = $active ?? match(true) {
+        request()->routeIs('dashboard') => 'dashboard',
+        request()->routeIs('nutrition*') => 'nutrition',
+        request()->routeIs('food.scan*') => 'food-scan',
+        request()->routeIs('ai.chat*') => 'ai',
+        request()->routeIs('consultations*') => 'consultations',
+        request()->routeIs('children*', 'growth-records*') => 'children',
+        request()->routeIs('profile*') => 'profile',
+        default => '',
+    };
+
+    $activeMenu = match($rawActive) {
+        'dashboard', 'beranda' => 'dashboard',
+        'nutrition', 'nutrisi' => 'nutrition',
+        'food-scan', 'food_scan', 'scan' => 'food-scan',
+        'ai', 'ai-chat', 'tanya-ai' => 'ai',
+        'consultations', 'konsultasi' => 'consultations',
+        'children', 'anak', 'data-anak' => 'children',
+        'profile', 'profil' => 'profile',
+        default => $rawActive,
+    };
 @endphp
 
 <aside class="hidden lg:flex fixed left-0 top-0 h-screen
               w-[285px] bg-[#FBFAF6]
               border-r border-stone-200
-              flex-col z-40">
+              flex-col z-40 text-[#202725]">
 
     {{-- LOGO --}}
     <div class="h-28 flex items-center px-9">
@@ -22,7 +42,7 @@
 
             </div>
 
-            <div class="ml-3 text-2xl font-bold">
+            <div class="ml-3 text-2xl font-bold text-[#202725]">
                 <span class="text-[#438F83]">Grow</span>Care
             </div>
 
@@ -282,7 +302,7 @@
                         flex items-center justify-center
                         font-bold text-[#438F83]">
 
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                {{ strtoupper(substr(Auth::user()?->name ?? 'U', 0, 1)) }}
 
             </div>
 
@@ -290,7 +310,7 @@
             <div class="min-w-0 flex-1">
 
                 <p class="font-semibold truncate">
-                    {{ Auth::user()->name }}
+                    {{ Auth::user()?->name ?? 'Pengguna' }}
                 </p>
 
                 <p class="text-xs text-gray-400">
