@@ -3,144 +3,339 @@
 namespace App\Http\Controllers\Doctor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consultation;
+use App\Notifications\ConsultationAcceptedNotification;
+use App\Notifications\ConsultationCompletedNotification;
+use App\Notifications\NewConsultationMessageNotification;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DoctorConsultationController extends Controller
 {
     /**
-     * Tampilkan daftar semua konsultasi.
-     * TODO: Ganti data dummy dengan query database.
+     * Tampilkan daftar semua konsultasi milik dokter yang login dengan filter, pencarian, dan pagination.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $consultations = collect([
-            (object) [
-                'id'                => 1,
-                'parent_name'       => 'Siti Nurhaliza',
-                'child_name'        => 'Ahmad',
-                'child_age'         => '14 bulan',
-                'child_gender'      => 'L',
-                'complaint'         => 'Anak tidak mau makan sejak 3 hari lalu, berat badan turun.',
-                'status'            => 'pending',
-                'consultation_date' => now()->subHours(2),
-            ],
-            (object) [
-                'id'                => 2,
-                'parent_name'       => 'Rina Wati',
-                'child_name'        => 'Bella',
-                'child_age'         => '8 bulan',
-                'child_gender'      => 'P',
-                'complaint'         => 'Demam tinggi disertai ruam merah di seluruh badan.',
-                'status'            => 'accepted',
-                'consultation_date' => now()->subHours(5),
-            ],
-            (object) [
-                'id'                => 3,
-                'parent_name'       => 'Budi Santoso',
-                'child_name'        => 'Citra',
-                'child_age'         => '24 bulan',
-                'child_gender'      => 'P',
-                'complaint'         => 'Anak belum bisa bicara kata-kata sederhana.',
-                'status'            => 'completed',
-                'consultation_date' => now()->subDay(),
-            ],
-            (object) [
-                'id'                => 4,
-                'parent_name'       => 'Dewi Lestari',
-                'child_name'        => 'Dimas',
-                'child_age'         => '18 bulan',
-                'child_gender'      => 'L',
-                'complaint'         => 'Konsultasi pertumbuhan berat badan anak.',
-                'status'            => 'pending',
-                'consultation_date' => now()->subHours(1),
-            ],
-            (object) [
-                'id'                => 5,
-                'parent_name'       => 'Eka Putri',
-                'child_name'        => 'Farah',
-                'child_age'         => '10 bulan',
-                'child_gender'      => 'P',
-                'complaint'         => 'Anak sering muntah setelah makan.',
-                'status'            => 'cancelled',
-                'consultation_date' => now()->subDays(2),
-            ],
-            (object) [
-                'id'                => 6,
-                'parent_name'       => 'Fitri Handayani',
-                'child_name'        => 'Galih',
-                'child_age'         => '6 bulan',
-                'child_gender'      => 'L',
-                'complaint'         => 'Anak belum bisa duduk sendiri.',
-                'status'            => 'completed',
-                'consultation_date' => now()->subDays(3),
-            ],
-            (object) [
-                'id'                => 7,
-                'parent_name'       => 'Hana Safitri',
-                'child_name'        => 'Iqbal',
-                'child_age'         => '12 bulan',
-                'child_gender'      => 'L',
-                'complaint'         => 'Tanyakan jadwal imunisasi yang terlewat.',
-                'status'            => 'completed',
-                'consultation_date' => now()->subDays(4),
-            ],
-        ]);
+        $doctorId = Auth::user()->doctor?->id;
 
-        return view('doctor.consultations.index', compact('consultations'));
+        $status = $request->query('status');
+        $search = trim((string) $request->query('search', ''));
+
+        // Validasi status yang diizinkan
+        $validStatuses = ['pending', 'accepted', 'completed', 'cancelled'];
+        $currentStatus = in_array($status, $validStatuses, true) ? $status : 'all';
+
+        // Jika dokter belum memiliki record profil di tabel doctors, kembalikan paginator kosong
+        if (!$doctorId) {
+            $consultations = new LengthAwarePaginator([], 0, 10, 1, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+
+            $counts = [
+                'total'     => 0,
+                'pending'   => 0,
+                'accepted'  => 0,
+                'completed' => 0,
+                'cancelled' => 0,
+            ];
+
+            return view('doctor.consultations.index', compact(
+                'consultations',
+                'counts',
+                'currentStatus',
+                'search'
+            ));
+        }
+
+        // ── Agregasi Global Statistik & Tab dari Database ──
+        $baseQuery = Consultation::where('doctor_id', $doctorId);
+        $counts = [
+            'total'     => (clone $baseQuery)->count(),
+            'pending'   => (clone $baseQuery)->where('status', 'pending')->count(),
+            'accepted'  => (clone $baseQuery)->where('status', 'accepted')->count(),
+            'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
+        ];
+
+        // ── Query Utama Konsultasi Dokter ──
+        $query = Consultation::where('doctor_id', $doctorId)
+            ->with(['user', 'child']);
+
+        // Filter Berdasarkan Status
+        if ($currentStatus !== 'all') {
+            $query->where('status', $currentStatus);
+        }
+
+        // Pencarian (Nama Anak, Nama Orang Tua, atau Keluhan)
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('child', function ($childQuery) use ($search) {
+                    $childQuery->where('name', 'like', "%{$search}%");
+                })->orWhereHas('user', function ($parentQuery) use ($search) {
+                    $parentQuery->where('name', 'like', "%{$search}%");
+                })->orWhere('complaint', 'like', "%{$search}%");
+            });
+        }
+
+        // Urutkan terbaru dan lakukan pagination 10 item per halaman
+        $consultations = $query->latest('created_at')
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('doctor.consultations.index', compact(
+            'consultations',
+            'counts',
+            'currentStatus',
+            'search'
+        ));
     }
 
     /**
-     * Tampilkan detail konsultasi.
-     * TODO: Ganti data dummy dengan query database.
+     * Tampilkan detail konsultasi milik dokter yang login dari database.
      */
     public function show(string $id): View
     {
-        // Data dummy konsultasi
-        $consultation = (object) [
-            'id'                => $id,
-            'parent_name'       => 'Siti Nurhaliza',
-            'parent_email'      => 'siti@email.com',
-            'parent_phone'      => '0813-1234-5678',
-            'child_name'        => 'Ahmad',
-            'child_age'         => '14 bulan',
-            'child_gender'      => 'L',
-            'child_birth_date'  => '2025-07-15',
-            'child_weight'      => '9.5 kg',
-            'child_height'      => '76 cm',
-            'complaint'         => 'Anak tidak mau makan sejak 3 hari lalu, berat badan turun. Sudah dicoba berbagai makanan tapi tetap menolak. Hanya mau minum susu saja.',
-            'status'            => 'pending',
-            'consultation_date' => now()->subHours(2),
-            'doctor_notes'      => null,
-        ];
+        $consultation = $this->getDoctorConsultation($id);
 
-        // Data dummy pesan/chat
-        $messages = collect([
-            (object) [
-                'sender_type' => 'parent',
-                'message'     => 'Selamat pagi Dok, anak saya Ahmad (14 bulan) tidak mau makan sejak 3 hari lalu. Sudah dicoba berbagai makanan tapi tetap menolak.',
-                'created_at'  => now()->subHours(3),
-            ],
-            (object) [
-                'sender_type' => 'parent',
-                'message'     => 'Dia hanya mau minum susu saja. Berat badannya sepertinya turun, Dok.',
-                'created_at'  => now()->subHours(3)->addMinutes(5),
-            ],
-            (object) [
-                'sender_type' => 'doctor',
-                'message'     => 'Selamat pagi, Bu Siti. Terima kasih sudah menghubungi. Apakah Ahmad mengalami demam atau gejala lain seperti diare atau muntah?',
-                'created_at'  => now()->subHours(2)->addMinutes(30),
-            ],
-            (object) [
-                'sender_type' => 'parent',
-                'message'     => 'Tidak ada demam, Dok. Tapi memang agak rewel dan tidurnya gelisah.',
-                'created_at'  => now()->subHours(2)->addMinutes(45),
-            ],
+        // Tandai pesan dari orang tua yang belum dibaca sebagai sudah dibaca
+        $consultation->messages()
+            ->where('sender_type', 'user')
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        $consultation->load([
+            'user',
+            'child.latestGrowthRecord',
+            'messages' => fn ($q) => $q->oldest('created_at')->oldest('id'),
         ]);
+
+        $latestGrowth = $consultation->child?->latestGrowthRecord;
+        $messages = $consultation->messages;
 
         return view('doctor.consultations.show', compact(
             'consultation',
+            'latestGrowth',
             'messages'
         ));
+    }
+
+    /**
+     * Kirim pesan baru dari dokter pada konsultasi yang sedang aktif/diterima.
+     */
+    public function sendMessage(Request $request, string $id): RedirectResponse
+    {
+        $consultation = $this->getDoctorConsultation($id);
+
+        if ($consultation->status !== 'accepted') {
+            return redirect()
+                ->route('dokter.konsultasi.detail', $consultation->id)
+                ->with('error', 'Pesan hanya dapat dikirim saat sesi konsultasi aktif / telah diterima.');
+        }
+
+        $validated = $request->validate([
+            'message' => 'required|string|max:5000',
+        ], [
+            'message.required' => 'Pesan tidak boleh kosong.',
+            'message.max' => 'Pesan tidak boleh melebihi 5000 karakter.',
+        ]);
+
+        $trimmedMessage = trim($validated['message']);
+        if ($trimmedMessage === '') {
+            return redirect()
+                ->route('dokter.konsultasi.detail', $consultation->id)
+                ->with('error', 'Pesan tidak boleh hanya berisi spasi.');
+        }
+
+        $msg = DB::transaction(function () use ($consultation, $trimmedMessage) {
+            return $consultation->messages()->create([
+                'sender_type' => 'doctor',
+                'message'     => $trimmedMessage,
+                'is_read'     => false,
+            ]);
+        });
+
+        // Notifikasi pesan baru ke Orang Tua (Parent)
+        $consultation->loadMissing('user', 'doctor');
+        if ($parentUser = $consultation->user) {
+            $parentUser->notify(new NewConsultationMessageNotification($consultation, $msg));
+        }
+
+        return redirect()
+            ->route('dokter.konsultasi.detail', $consultation->id)
+            ->with('success', 'Pesan berhasil dikirim.');
+    }
+
+    /**
+     * Terima konsultasi yang berstatus pending secara aman dan bebas race condition.
+     */
+    public function accept(string $id): RedirectResponse
+    {
+        $doctor = Auth::user()?->doctor;
+        if (! $doctor) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        $notificationToSend = null;
+
+        $accepted = DB::transaction(function () use ($id, $doctor, &$notificationToSend) {
+            $consultation = Consultation::where('id', $id)
+                ->where('doctor_id', $doctor->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $consultation) {
+                return null;
+            }
+
+            if ($consultation->status !== 'pending') {
+                return false;
+            }
+
+            $consultation->update([
+                'status' => 'accepted',
+            ]);
+
+            $consultation->loadMissing('user', 'doctor');
+            if ($parentUser = $consultation->user) {
+                $notificationToSend = [$parentUser, new ConsultationAcceptedNotification($consultation)];
+            }
+
+            return true;
+        });
+
+        if ($accepted === null) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        if (! $accepted) {
+            return redirect()
+                ->route('dokter.konsultasi.detail', $id)
+                ->with('error', 'Konsultasi tidak dapat diterima karena statusnya bukan menunggu.');
+        }
+
+        if ($notificationToSend) {
+            [$recipient, $notification] = $notificationToSend;
+            $recipient->notify($notification);
+        }
+
+        return redirect()
+            ->route('dokter.konsultasi.detail', $id)
+            ->with('success', 'Konsultasi berhasil diterima.');
+    }
+
+    /**
+     * Simpan catatan medis dokter untuk konsultasi yang sedang aktif/diterima.
+     */
+    public function saveNotes(Request $request, string $id): RedirectResponse
+    {
+        $consultation = $this->getDoctorConsultation($id);
+
+        if ($consultation->status !== 'accepted') {
+            return redirect()
+                ->route('dokter.konsultasi.detail', $consultation->id)
+                ->with('error', 'Catatan hanya dapat disimpan ketika konsultasi sedang aktif / diterima.');
+        }
+
+        $validated = $request->validate([
+            'doctor_notes' => 'required|string|max:5000',
+        ], [
+            'doctor_notes.required' => 'Catatan medis dokter wajib diisi.',
+            'doctor_notes.max' => 'Catatan medis dokter maksimal 5000 karakter.',
+        ]);
+
+        $consultation->update([
+            'doctor_notes' => $validated['doctor_notes'],
+        ]);
+
+        return redirect()
+            ->route('dokter.konsultasi.detail', $consultation->id)
+            ->with('success', 'Catatan medis dokter berhasil disimpan.');
+    }
+
+    /**
+     * Selesaikan konsultasi yang berstatus accepted secara aman dan bebas race condition.
+     */
+    public function complete(string $id): RedirectResponse
+    {
+        $doctor = Auth::user()?->doctor;
+        if (! $doctor) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        $notificationToSend = null;
+
+        $completed = DB::transaction(function () use ($id, $doctor, &$notificationToSend) {
+            $consultation = Consultation::where('id', $id)
+                ->where('doctor_id', $doctor->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $consultation) {
+                return null;
+            }
+
+            if ($consultation->status !== 'accepted') {
+                return false;
+            }
+
+            $consultation->update([
+                'status' => 'completed',
+            ]);
+
+            $consultation->loadMissing('user', 'doctor');
+            if ($parentUser = $consultation->user) {
+                $notificationToSend = [$parentUser, new ConsultationCompletedNotification($consultation)];
+            }
+
+            return true;
+        });
+
+        if ($completed === null) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        if (! $completed) {
+            return redirect()
+                ->route('dokter.konsultasi.detail', $id)
+                ->with('error', 'Konsultasi hanya dapat diselesaikan jika statusnya sedang aktif / diterima.');
+        }
+
+        if ($notificationToSend) {
+            [$recipient, $notification] = $notificationToSend;
+            $recipient->notify($notification);
+        }
+
+        return redirect()
+            ->route('dokter.konsultasi.detail', $id)
+            ->with('success', 'Konsultasi telah berhasil diselesaikan.');
+    }
+
+    /**
+     * Ambil record konsultasi milik dokter yang sedang login, atau gagal dengan 404 jika tidak ditemukan.
+     */
+    protected function getDoctorConsultation(int|string $id): Consultation
+    {
+        $doctor = Auth::user()?->doctor;
+
+        if (!$doctor) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        $consultation = Consultation::where('id', $id)
+            ->where('doctor_id', $doctor->id)
+            ->first();
+
+        if (!$consultation) {
+            abort(404, 'Konsultasi tidak ditemukan.');
+        }
+
+        return $consultation;
     }
 }

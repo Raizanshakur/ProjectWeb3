@@ -102,11 +102,40 @@
                     </div>
                 </div>
 
+                <!-- Flash Messages -->
+                @if (session('success'))
+                    <div class="p-4 rounded-2xl bg-[#EDF7F0] border border-[#C6E7D0] text-xs sm:text-sm text-[#15803D] font-semibold flex items-center gap-2.5 shadow-xs">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 shrink-0 text-[#15803D]"></i>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="p-4 rounded-2xl bg-[#FFF1F2] border border-[#FFE4E6] text-xs sm:text-sm text-[#BE4560] font-semibold flex items-center gap-2.5 shadow-xs">
+                        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 text-[#BE4560]"></i>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="p-4 rounded-2xl bg-[#FFF1F2] border border-[#FFE4E6] text-xs sm:text-sm text-[#BE4560] font-semibold shadow-xs">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 text-[#BE4560]"></i>
+                            <span>Terjadi kesalahan:</span>
+                        </div>
+                        <ul class="list-disc list-inside ml-6 text-xs text-[#BE4560]/90 space-y-0.5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Page Header Title Area -->
                 <div class="bg-white rounded-[24px] sm:rounded-[28px] border border-[#DFEBF5] p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <div class="w-14 h-14 rounded-full bg-[#DCECF8] border border-[#DFEBF5] flex items-center justify-center text-3xl shrink-0 shadow-xs">
-                            {{ strtolower($consultation->child_gender ?? '') === 'l' ? '👦' : '👧' }}
+                            {{ strtolower($consultation->child?->gender ?? '') === 'l' || strtolower($consultation->child?->gender ?? '') === 'male' ? '👦' : '👧' }}
                         </div>
                         <div>
                             <div class="flex items-center gap-2 mb-1">
@@ -114,14 +143,14 @@
                                     ID: #{{ $consultation->id }}
                                 </span>
                                 <span class="text-xs text-[#718096]">
-                                    {{ \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->translatedFormat('d M Y, H:i') }} WIB
+                                    {{ $consultation->consultation_date ? \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->translatedFormat('d M Y, H:i') . ' WIB' : '—' }}
                                 </span>
                             </div>
                             <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#24323D]">
-                                Konsultasi {{ $consultation->child_name }}
+                                Konsultasi {{ $consultation->child?->name ?? 'Anak' }}
                             </h1>
                             <p class="text-xs sm:text-sm text-[#718096]">
-                                Diajukan oleh <span class="font-semibold text-[#24323D]">{{ $consultation->parent_name }}</span> • {{ \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->diffForHumans() }}
+                                Diajukan oleh <span class="font-semibold text-[#24323D]">{{ $consultation->user?->name ?? 'Orang Tua' }}</span> • {{ $consultation->consultation_date ? \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->diffForHumans() : '—' }}
                             </p>
                         </div>
                     </div>
@@ -129,12 +158,12 @@
                     <div class="flex items-center gap-3 self-start md:self-center">
                         <div class="px-4 py-2 rounded-2xl bg-[#F3F8FD] border border-[#DFEBF5] text-left">
                             <span class="text-[11px] text-[#718096] block font-medium">Usia Anak</span>
-                            <span class="text-sm font-bold text-[#24323D]">{{ $consultation->child_age }}</span>
+                            <span class="text-sm font-bold text-[#24323D]">{{ $consultation->child?->formatted_age ?? '—' }}</span>
                         </div>
                         <div class="px-4 py-2 rounded-2xl bg-[#F3F8FD] border border-[#DFEBF5] text-left">
                             <span class="text-[11px] text-[#718096] block font-medium">Jenis Kelamin</span>
                             <span class="text-sm font-bold text-[#24323D]">
-                                {{ $consultation->child_gender === 'L' ? 'Laki-laki' : 'Perempuan' }}
+                                {{ ($consultation->child?->gender === 'L' || $consultation->child?->gender === 'male') ? 'Laki-laki' : 'Perempuan' }}
                             </span>
                         </div>
                     </div>
@@ -150,38 +179,57 @@
                         <div class="p-4 sm:p-5 border-b border-[#DFEBF5] flex items-center justify-between bg-white z-10 shrink-0">
                             <div class="flex items-center gap-3 sm:gap-3.5">
                                 <div class="w-11 h-11 bg-[#DCECF8] text-[#548FB7] border border-[#DFEBF5] rounded-full flex items-center justify-center font-bold text-base sm:text-lg shrink-0 shadow-xs">
-                                    {{ substr($consultation->parent_name, 0, 1) }}
+                                    {{ strtoupper(substr($consultation->user?->name ?? 'U', 0, 1)) }}
                                 </div>
                                 <div class="min-w-0">
                                     <h2 class="font-bold text-sm sm:text-base text-[#24323D] truncate">
-                                        {{ $consultation->parent_name }}
+                                        {{ $consultation->user?->name ?? 'Orang Tua' }}
                                     </h2>
                                     <p class="text-xs text-[#718096] truncate">
-                                        Orang tua dari {{ $consultation->child_name }}
+                                        Orang tua dari {{ $consultation->child?->name ?? 'Anak' }}
                                     </p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $statusKey === 'completed' ? 'bg-stone-300' : 'bg-[#548FB7]' }}"></span>
+                                <span class="w-2.5 h-2.5 rounded-full {{ in_array($statusKey, ['completed', 'cancelled'], true) ? 'bg-stone-300' : 'bg-[#548FB7]' }}"></span>
                                 <span class="text-xs font-semibold text-[#718096] hidden sm:inline">
-                                    {{ $statusKey === 'completed' ? 'Selesai' : 'Sesi Pesan' }}
+                                    {{ $statusKey === 'completed' ? 'Selesai' : ($statusKey === 'cancelled' ? 'Dibatalkan' : 'Sesi Pesan') }}
                                 </span>
                             </div>
                         </div>
 
                         <!-- Messages Stream -->
                         <div id="chatMessages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 bg-[#F8FAFD]">
-                            @foreach($messages as $msg)
-                                @if($msg->sender_type === 'parent')
+                            @php
+                                $lastDate = null;
+                            @endphp
+                            @forelse($messages as $msg)
+                                @php
+                                    $msgDateTime = \Carbon\Carbon::parse($msg->created_at)->timezone('Asia/Jakarta');
+                                    $currentDate = $msgDateTime->toDateString();
+                                @endphp
+
+                                @if($lastDate !== $currentDate)
+                                    @php
+                                        $lastDate = $currentDate;
+                                    @endphp
+                                    <div class="flex justify-center my-2 sm:my-3">
+                                        <span class="inline-flex items-center px-4 py-1 rounded-full text-[11px] font-bold bg-[#EAF4FC] text-[#346D96] border border-[#DFEBF5] shadow-2xs">
+                                            {{ $msgDateTime->locale('id')->translatedFormat('l, d F Y') }}
+                                        </span>
+                                    </div>
+                                @endif
+
+                                @if($msg->sender_type === 'user' || $msg->sender_type === 'parent')
                                     <!-- Parent Message (Right aligned) -->
                                     <div class="flex flex-col items-end">
                                         <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[80%]">
-                                            <div class="bg-white text-[#24323D] border border-[#DFEBF5] px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-br-none shadow-xs text-xs sm:text-[15px] leading-relaxed">
+                                            <div class="bg-white text-[#24323D] border border-[#DFEBF5] px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-br-none shadow-xs text-xs sm:text-[15px] leading-relaxed break-words whitespace-pre-line">
                                                 {{ $msg->message }}
                                             </div>
                                         </div>
-                                        <span class="text-[11px] text-[#718096] mt-1.5 font-medium">
-                                            {{ \Carbon\Carbon::parse($msg->created_at)->format('H:i') }}
+                                        <span class="text-[11px] text-[#718096] mt-1.5 font-medium flex items-center gap-1.5">
+                                            {{ $msgDateTime->format('H.i') }} WIB
                                         </span>
                                     </div>
                                 @else
@@ -191,43 +239,85 @@
                                             <div class="w-8 h-8 rounded-full bg-[#DCECF8] flex items-center justify-center shrink-0 border border-[#DFEBF5] mb-1 text-[#548FB7]">
                                                 <i data-lucide="stethoscope" class="w-4 h-4"></i>
                                             </div>
-                                            <div class="bg-[#548FB7] text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-bl-none shadow-xs text-xs sm:text-[15px] leading-relaxed">
+                                            <div class="bg-[#548FB7] text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-bl-none shadow-xs text-xs sm:text-[15px] leading-relaxed break-words whitespace-pre-line">
                                                 {{ $msg->message }}
                                             </div>
                                         </div>
-                                        <span class="text-[11px] text-[#718096] mt-1.5 ml-10 font-medium">
-                                            {{ \Carbon\Carbon::parse($msg->created_at)->format('H:i') }}
+                                        <span class="text-[11px] text-[#718096] mt-1.5 ml-10 font-medium flex items-center gap-1.5">
+                                            {{ $msgDateTime->format('H.i') }} WIB
+                                            @if($msg->is_read)
+                                                <span class="text-[10px] text-[#548FB7] font-semibold">✓ Dibaca</span>
+                                            @endif
                                         </span>
                                     </div>
                                 @endif
-                            @endforeach
+                            @empty
+                                <div class="h-full flex flex-col items-center justify-center text-center py-12 px-4">
+                                    <div class="w-12 h-12 rounded-full bg-[#DCECF8] text-[#548FB7] flex items-center justify-center mb-3">
+                                        <i data-lucide="message-square" class="w-6 h-6"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-[#24323D]">Belum ada percakapan pada konsultasi ini</p>
+                                    <p class="text-xs text-[#718096] mt-1 max-w-sm">Riwayat pesan antara dokter dan orang tua akan ditampilkan di sini.</p>
+                                </div>
+                            @endforelse
                         </div>
 
                         <!-- Message Input Form -->
                         <div class="p-3.5 sm:p-4 bg-white border-t border-[#DFEBF5] shrink-0">
-                            <form id="chatForm" class="flex items-center gap-2 sm:gap-3" onsubmit="event.preventDefault(); sendMessage();">
-                                <button type="button"
-                                        aria-label="Lampiran"
-                                        class="p-2.5 sm:p-3 text-[#718096] hover:text-[#548FB7] bg-[#F3F8FD] hover:bg-[#EAF4FC] rounded-xl sm:rounded-2xl border border-[#DFEBF5] transition-colors shrink-0">
-                                    <i data-lucide="paperclip" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                                </button>
-                                <input 
-                                    type="text" 
-                                    id="messageInput"
-                                    placeholder="{{ $statusKey === 'completed' ? 'Konsultasi ini telah selesai' : 'Ketik respon atau saran untuk pasien...' }}" 
-                                    class="flex-1 bg-[#F8FAFD] border border-[#DFEBF5] rounded-xl sm:rounded-2xl px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-[#24323D] placeholder-[#718096]/70 outline-none disabled:bg-stone-50 disabled:cursor-not-allowed"
-                                    {{ ($statusKey === 'completed' || $statusKey === 'cancelled') ? 'disabled' : '' }}
-                                    autocomplete="off"
-                                >
-                                <button 
-                                    type="submit" 
-                                    aria-label="Kirim Pesan"
-                                    class="p-2.5 sm:p-3 bg-[#548FB7] hover:bg-[#427DA6] text-white rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
-                                    {{ ($statusKey === 'completed' || $statusKey === 'cancelled') ? 'disabled' : '' }}
-                                >
-                                    <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                                </button>
-                            </form>
+                            @if($statusKey === 'accepted' || $statusKey === 'active')
+                                <form action="{{ route('dokter.konsultasi.message', $consultation->id) }}" method="POST" class="flex items-center gap-2 sm:gap-3">
+                                    @csrf
+                                    <button type="button"
+                                            disabled
+                                            aria-label="Lampiran"
+                                            title="Lampiran belum tersedia"
+                                            class="p-2.5 sm:p-3 text-[#718096] bg-[#F3F8FD] rounded-xl sm:rounded-2xl border border-[#DFEBF5] shrink-0 opacity-60 cursor-not-allowed">
+                                        <i data-lucide="paperclip" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                                    </button>
+                                    <input 
+                                        type="text" 
+                                        name="message"
+                                        id="messageInput"
+                                        required
+                                        maxlength="5000"
+                                        value="{{ old('message') }}"
+                                        placeholder="Ketik respon atau saran medis untuk orang tua..." 
+                                        class="flex-1 bg-[#F8FAFD] border border-[#DFEBF5] rounded-xl sm:rounded-2xl px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-[#24323D] placeholder-[#718096]/70 outline-none"
+                                        autocomplete="off"
+                                    >
+                                    <button 
+                                        type="submit" 
+                                        aria-label="Kirim Pesan"
+                                        class="p-2.5 sm:p-3 bg-[#548FB7] hover:bg-[#427DA6] text-white rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center shrink-0 cursor-pointer"
+                                    >
+                                        <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <div class="flex items-center gap-2 sm:gap-3">
+                                    <button type="button"
+                                            disabled
+                                            aria-label="Lampiran"
+                                            class="p-2.5 sm:p-3 text-[#718096] bg-[#F3F8FD] rounded-xl sm:rounded-2xl border border-[#DFEBF5] shrink-0 opacity-60 cursor-not-allowed">
+                                        <i data-lucide="paperclip" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                                    </button>
+                                    <input 
+                                        type="text" 
+                                        placeholder="{{ $statusKey === 'pending' ? 'Obrolan aktif setelah konsultasi diterima...' : ($statusKey === 'completed' ? 'Konsultasi ini telah selesai' : 'Konsultasi ini telah dibatalkan') }}" 
+                                        class="flex-1 bg-stone-50 border border-[#DFEBF5] rounded-xl sm:rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#718096] placeholder-[#718096]/70 outline-none cursor-not-allowed"
+                                        disabled
+                                        autocomplete="off"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        disabled
+                                        aria-label="Kirim Pesan"
+                                        class="p-2.5 sm:p-3 bg-[#548FB7] text-white rounded-xl sm:rounded-2xl opacity-40 cursor-not-allowed flex items-center justify-center shrink-0"
+                                    >
+                                        <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -246,22 +336,22 @@
                             <div class="space-y-3.5 text-xs sm:text-sm">
                                 <div class="flex justify-between items-center pb-3 border-b border-[#DFEBF5]">
                                     <span class="text-[#718096]">Nama Lengkap</span>
-                                    <span class="font-bold text-[#24323D]">{{ $consultation->child_name }}</span>
+                                    <span class="font-bold text-[#24323D]">{{ $consultation->child?->name ?? '—' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center pb-3 border-b border-[#DFEBF5]">
                                     <span class="text-[#718096]">Jenis Kelamin</span>
                                     <span class="font-semibold text-[#24323D]">
-                                        {{ $consultation->child_gender === 'L' ? 'Laki-laki 👦' : 'Perempuan 👧' }}
+                                        {{ ($consultation->child?->gender === 'L' || $consultation->child?->gender === 'male') ? 'Laki-laki 👦' : 'Perempuan 👧' }}
                                     </span>
                                 </div>
                                 <div class="flex justify-between items-center pb-3 border-b border-[#DFEBF5]">
                                     <span class="text-[#718096]">Usia</span>
-                                    <span class="font-semibold text-[#24323D]">{{ $consultation->child_age }}</span>
+                                    <span class="font-semibold text-[#24323D]">{{ $consultation->child?->formatted_age ?? '—' }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-[#718096]">Tanggal Lahir</span>
                                     <span class="font-semibold text-[#24323D]">
-                                        {{ \Carbon\Carbon::parse($consultation->child_birth_date)->locale('id')->translatedFormat('d F Y') }}
+                                        {{ $consultation->child?->birth_date ? \Carbon\Carbon::parse($consultation->child->birth_date)->locale('id')->translatedFormat('d F Y') : '—' }}
                                     </span>
                                 </div>
                             </div>
@@ -279,17 +369,29 @@
                             <div class="grid grid-cols-2 gap-3.5">
                                 <div class="bg-[#F3F8FD] rounded-2xl p-4 border border-[#DFEBF5] text-center shadow-2xs">
                                     <span class="text-xs text-[#718096] block mb-1 font-medium">Berat Badan</span>
-                                    <span class="font-bold text-xl sm:text-2xl text-[#24323D]">
-                                        {{ trim(str_ireplace('kg', '', $consultation->child_weight ?? '—')) }}
-                                        <span class="text-xs sm:text-sm font-semibold text-[#718096]">kg</span>
-                                    </span>
+                                    @if($latestGrowth && $latestGrowth->weight !== null)
+                                        <span class="font-bold text-xl sm:text-2xl text-[#24323D]">
+                                            {{ (float) $latestGrowth->weight }}
+                                            <span class="text-xs sm:text-sm font-semibold text-[#718096]">kg</span>
+                                        </span>
+                                    @else
+                                        <span class="font-bold text-xl sm:text-2xl text-[#718096]">
+                                            —
+                                        </span>
+                                    @endif
                                 </div>
                                 <div class="bg-[#F3F8FD] rounded-2xl p-4 border border-[#DFEBF5] text-center shadow-2xs">
                                     <span class="text-xs text-[#718096] block mb-1 font-medium">Tinggi Badan</span>
-                                    <span class="font-bold text-xl sm:text-2xl text-[#24323D]">
-                                        {{ trim(str_ireplace('cm', '', $consultation->child_height ?? '—')) }}
-                                        <span class="text-xs sm:text-sm font-semibold text-[#718096]">cm</span>
-                                    </span>
+                                    @if($latestGrowth && $latestGrowth->height !== null)
+                                        <span class="font-bold text-xl sm:text-2xl text-[#24323D]">
+                                            {{ (float) $latestGrowth->height }}
+                                            <span class="text-xs sm:text-sm font-semibold text-[#718096]">cm</span>
+                                        </span>
+                                    @else
+                                        <span class="font-bold text-xl sm:text-2xl text-[#718096]">
+                                            —
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -305,14 +407,14 @@
                             
                             <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#F3F8FD] border border-[#DFEBF5]">
                                 <div class="w-11 h-11 rounded-full bg-[#DCECF8] border border-[#DFEBF5] text-[#548FB7] font-bold flex items-center justify-center text-base shrink-0 shadow-xs">
-                                    {{ substr($consultation->parent_name, 0, 1) }}
+                                    {{ strtoupper(substr($consultation->user?->name ?? 'U', 0, 1)) }}
                                 </div>
                                 <div class="min-w-0">
                                     <h4 class="font-bold text-sm sm:text-base text-[#24323D] truncate">
-                                        {{ $consultation->parent_name }}
+                                        {{ $consultation->user?->name ?? 'Orang Tua' }}
                                     </h4>
                                     <p class="text-xs text-[#718096] truncate">
-                                        Orang tua / Wali dari {{ $consultation->child_name }}
+                                        Orang tua / Wali dari {{ $consultation->child?->name ?? 'Anak' }}
                                     </p>
                                 </div>
                             </div>
@@ -335,7 +437,7 @@
 
                             <div class="flex items-center gap-1.5 text-xs text-[#718096] px-1">
                                 <i data-lucide="clock" class="w-3.5 h-3.5 text-[#548FB7]"></i>
-                                <span>Diajukan {{ \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->diffForHumans() }}</span>
+                                <span>Diajukan {{ $consultation->consultation_date ? \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->diffForHumans() : '—' }}</span>
                             </div>
                         </div>
 
@@ -348,51 +450,103 @@
                                 <span>Catatan & Tindakan Dokter</span>
                             </h3>
                             
-                            <form action="#" method="POST" class="space-y-4">
-                                @csrf
-                                <div>
-                                    <label for="doctorNotes" class="block text-xs font-semibold text-[#718096] mb-1.5">
-                                        Catatan Medis / Rekomendasi
-                                    </label>
-                                    <textarea 
-                                        id="doctorNotes"
-                                        name="doctor_notes" 
-                                        rows="3" 
-                                        class="w-full bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl p-3.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] transition-all resize-none text-[#24323D] placeholder-[#718096]/70 outline-none" 
-                                        placeholder="Tambahkan catatan medis atau anjuran untuk orang tua di sini..."
-                                    >{{ $consultation->doctor_notes ?? '' }}</textarea>
+                            @if($statusKey === 'pending')
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="doctorNotes" class="block text-xs font-semibold text-[#718096] mb-1.5">
+                                            Catatan Medis / Rekomendasi
+                                        </label>
+                                        <textarea 
+                                            id="doctorNotes"
+                                            rows="3" 
+                                            disabled
+                                            class="w-full bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl p-3.5 text-xs sm:text-sm resize-none text-[#718096] placeholder-[#718096]/70 outline-none cursor-not-allowed opacity-80" 
+                                            placeholder="Catatan medis dapat ditambahkan setelah konsultasi diterima..."
+                                        >{{ $consultation->doctor_notes ?? '' }}</textarea>
+                                    </div>
+
+                                    <form action="{{ route('dokter.konsultasi.accept', $consultation->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                                class="w-full bg-[#548FB7] hover:bg-[#427DA6] text-white font-bold py-3.5 px-4 rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm">
+                                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                            <span>Terima Konsultasi</span>
+                                        </button>
+                                    </form>
                                 </div>
-                                
-                                @if($statusKey === 'pending')
-                                    <button type="submit"
-                                            class="w-full bg-[#548FB7] hover:bg-[#427DA6] text-white font-bold py-3.5 px-4 rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm">
-                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                        <span>Terima Konsultasi</span>
-                                    </button>
-                                @elseif($statusKey === 'active' || $statusKey === 'accepted')
+                            @elseif($statusKey === 'active' || $statusKey === 'accepted')
+                                <div class="space-y-4">
+                                    <form id="notesForm" action="{{ route('dokter.konsultasi.notes', $consultation->id) }}" method="POST">
+                                        @csrf
+                                        <div>
+                                            <label for="doctorNotes" class="block text-xs font-semibold text-[#718096] mb-1.5">
+                                                Catatan Medis / Rekomendasi
+                                            </label>
+                                            <textarea 
+                                                id="doctorNotes"
+                                                name="doctor_notes" 
+                                                rows="3" 
+                                                class="w-full bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl p-3.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] transition-all resize-none text-[#24323D] placeholder-[#718096]/70 outline-none" 
+                                                placeholder="Tambahkan catatan medis atau anjuran untuk orang tua di sini..."
+                                            >{{ old('doctor_notes', $consultation->doctor_notes ?? '') }}</textarea>
+                                            @error('doctor_notes')
+                                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </form>
+
                                     <div class="flex gap-3">
                                         <button type="submit"
-                                                class="flex-1 bg-white border border-[#DFEBF5] text-[#294E69] hover:bg-[#F3F8FD] font-bold py-3 px-4 rounded-xl sm:rounded-2xl transition-all text-xs sm:text-sm shadow-xs">
-                                            Simpan Catatan
+                                                form="notesForm"
+                                                class="flex-1 bg-white border border-[#DFEBF5] text-[#294E69] hover:bg-[#F3F8FD] font-bold py-3 px-4 rounded-xl sm:rounded-2xl transition-all text-xs sm:text-sm shadow-xs flex items-center justify-center gap-1.5">
+                                            <i data-lucide="save" class="w-4 h-4"></i>
+                                            <span>Simpan Catatan</span>
                                         </button>
-                                        <button type="button"
-                                                class="flex-1 bg-[#15803D] hover:bg-[#166534] text-white font-bold py-3 px-4 rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm">
-                                            <i data-lucide="check-square" class="w-4 h-4"></i>
-                                            <span>Selesai</span>
-                                        </button>
+                                        <form action="{{ route('dokter.konsultasi.complete', $consultation->id) }}" method="POST" class="flex-1 m-0">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="w-full bg-[#15803D] hover:bg-[#166534] text-white font-bold py-3 px-4 rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm">
+                                                <i data-lucide="check-square" class="w-4 h-4"></i>
+                                                <span>Selesai</span>
+                                            </button>
+                                        </form>
                                     </div>
-                                @elseif($statusKey === 'completed')
+                                </div>
+                            @elseif($statusKey === 'completed')
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-[#718096] mb-1.5">
+                                            Catatan Medis Dokter
+                                        </label>
+                                        <div class="w-full bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl p-3.5 text-xs sm:text-sm text-[#24323D] leading-relaxed">
+                                            {{ $consultation->doctor_notes ?: 'Tidak ada catatan khusus.' }}
+                                        </div>
+                                    </div>
+
                                     <div class="p-3.5 rounded-2xl bg-[#EDF7F0] border border-[#C6E7D0] text-xs sm:text-sm text-[#15803D] font-semibold flex items-center gap-2">
                                         <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                                         <span>Konsultasi ini telah diselesaikan.</span>
                                     </div>
-                                @elseif($statusKey === 'cancelled')
+                                </div>
+                            @elseif($statusKey === 'cancelled')
+                                <div class="space-y-4">
+                                    @if($consultation->doctor_notes)
+                                        <div>
+                                            <label class="block text-xs font-semibold text-[#718096] mb-1.5">
+                                                Catatan Medis
+                                            </label>
+                                            <div class="w-full bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl p-3.5 text-xs sm:text-sm text-[#24323D]">
+                                                {{ $consultation->doctor_notes }}
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     <div class="p-3.5 rounded-2xl bg-[#FFF1F2] border border-[#FFE4E6] text-xs sm:text-sm text-[#BE4560] font-semibold flex items-center gap-2">
                                         <i data-lucide="x-circle" class="w-4 h-4 shrink-0"></i>
                                         <span>Konsultasi ini telah dibatalkan.</span>
                                     </div>
-                                @endif
-                            </form>
+                                </div>
+                            @endif
                         </div>
 
                     </div>
@@ -442,36 +596,6 @@
         const chatMessages = document.getElementById('chatMessages');
         if (chatMessages) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            // Doctor message with soft blue theme
-            const msgHtml = `
-                <div class="flex flex-col items-start animate-fade-in">
-                    <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[80%]">
-                        <div class="w-8 h-8 rounded-full bg-[#DCECF8] flex items-center justify-center shrink-0 border border-[#DFEBF5] mb-1 text-[#548FB7]">
-                            <i data-lucide="stethoscope" class="w-4 h-4"></i>
-                        </div>
-                        <div class="bg-[#548FB7] text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-bl-none shadow-xs text-xs sm:text-[15px] leading-relaxed">
-                            ${text}
-                        </div>
-                    </div>
-                    <span class="text-[11px] text-[#718096] mt-1.5 ml-10 font-medium">${timeStr}</span>
-                </div>
-            `;
-
-            chatMessages.insertAdjacentHTML('beforeend', msgHtml);
-            lucide.createIcons();
-            
-            input.value = '';
-            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
         }
     </script>
 </body>

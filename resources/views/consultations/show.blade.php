@@ -33,8 +33,8 @@
     <x-growcare-sidebar active="consultations" />
 
     {{-- ================= MAIN ================= --}}
-    <main class="w-full min-w-0 lg:ml-[285px] pt-20 lg:pt-8 pb-28 lg:pb-12 px-4 sm:px-6 md:px-10">
-        <div class="max-w-[850px] mx-auto w-full">
+    <main class="w-full min-w-0 lg:ml-[285px] pt-20 lg:pt-8 pb-28 lg:pb-12 px-4 sm:px-6 md:px-8 lg:px-10">
+        <div class="w-full">
 
             {{-- BREADCRUMB / BACK --}}
             <a href="{{ route('consultations.index') }}"
@@ -238,12 +238,178 @@
 
             </div>
 
+            {{-- CHAT CONVERSATION CARD (TASK 4.4) --}}
+            <div class="mt-6 bg-white rounded-3xl border border-stone-100 shadow-sm p-6 sm:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-100 gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-2xl bg-[#E0F0EB] text-[#438F83] flex items-center justify-center shrink-0">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i>
+                        </span>
+                        <div>
+                            <h2 class="font-bold text-gray-800 text-lg">
+                                Ruang Percakapan Konsultasi
+                            </h2>
+                            <p class="text-xs text-gray-400">
+                                Komunikasi langsung dengan {{ $consultation->doctor->name ?? 'Dokter Spesialis Anak' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        @if($consultation->status === 'accepted')
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Sesi Aktif</span>
+                            </span>
+                        @elseif($consultation->status === 'pending')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                Menunggu Respon Dokter
+                            </span>
+                        @elseif($consultation->status === 'completed')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-600 border border-stone-200">
+                                Sesi Ditutup
+                            </span>
+                        @elseif($consultation->status === 'cancelled')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                Dibatalkan
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- MESSAGES STREAM --}}
+                <div id="parentChatMessages" class="max-h-[460px] overflow-y-auto p-4 sm:p-5 rounded-2xl bg-stone-50 border border-stone-100 space-y-4">
+                    @php
+                        $lastDate = null;
+                    @endphp
+                    @forelse($consultation->messages as $msg)
+                        @php
+                            $msgDateTime = \Carbon\Carbon::parse($msg->created_at)->timezone('Asia/Jakarta');
+                            $currentDate = $msgDateTime->toDateString();
+                        @endphp
+
+                        @if($lastDate !== $currentDate)
+                            @php
+                                $lastDate = $currentDate;
+                            @endphp
+                            <div class="flex justify-center my-2 sm:my-3">
+                                <span class="inline-flex items-center px-4 py-1 rounded-full text-[11px] font-bold bg-[#E0F0EB] text-[#2D635B] border border-[#C6E7D0] shadow-2xs">
+                                    {{ $msgDateTime->locale('id')->translatedFormat('l, d F Y') }}
+                                </span>
+                            </div>
+                        @endif
+
+                        @if($msg->sender_type === 'user' || $msg->sender_type === 'parent')
+                            {{-- Parent message (Right aligned, sage green) --}}
+                            <div class="flex flex-col items-end">
+                                <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
+                                    <div class="bg-[#438F83] text-white px-4 sm:px-5 py-3 rounded-2xl rounded-br-none shadow-xs text-xs sm:text-sm leading-relaxed break-words whitespace-pre-line">
+                                        {{ $msg->message }}
+                                    </div>
+                                </div>
+                                <span class="text-[11px] text-gray-400 mt-1 mr-1 flex items-center gap-1">
+                                    {{ $msgDateTime->format('H.i') }} WIB
+                                    @if($msg->is_read)
+                                        <span class="text-[10px] text-[#438F83] font-semibold">✓ Dibaca dokter</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @else
+                            {{-- Doctor message (Left aligned, white card) --}}
+                            <div class="flex flex-col items-start">
+                                <div class="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mb-1">
+                                        <i data-lucide="stethoscope" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="bg-white border border-stone-200 text-gray-800 px-4 sm:px-5 py-3 rounded-2xl rounded-bl-none shadow-xs text-xs sm:text-sm leading-relaxed break-words whitespace-pre-line">
+                                        {{ $msg->message }}
+                                    </div>
+                                </div>
+                                <span class="text-[11px] text-gray-400 mt-1 ml-10 flex items-center gap-1.5">
+                                    <span class="font-medium text-gray-600">{{ $consultation->doctor->name ?? 'Dokter' }}</span> • {{ $msgDateTime->format('H.i') }} WIB
+                                </span>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="py-12 text-center">
+                            <div class="w-12 h-12 rounded-full bg-[#E0F0EB] text-[#438F83] flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="message-square" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-700">Belum ada percakapan pada konsultasi ini.</p>
+                            <p class="text-xs text-gray-500 mt-1">Pesan dari Anda dan dokter akan ditampilkan di sini.</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- INPUT FORM --}}
+                <div>
+                    @if($consultation->status === 'accepted')
+                        <form action="{{ route('consultations.messages.store', $consultation) }}" method="POST" class="flex items-center gap-2 sm:gap-3">
+                            @csrf
+                            <button type="button"
+                                    disabled
+                                    aria-label="Lampiran"
+                                    title="Lampiran belum tersedia"
+                                    class="p-2.5 sm:p-3 text-gray-400 bg-stone-100 rounded-xl sm:rounded-2xl border border-stone-200 shrink-0 opacity-60 cursor-not-allowed">
+                                <i data-lucide="paperclip" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                            </button>
+                            <input 
+                                type="text" 
+                                name="message"
+                                id="parentMessageInput"
+                                required
+                                maxlength="5000"
+                                value="{{ old('message') }}"
+                                placeholder="Ketik pesan atau pertanyaan untuk dokter..." 
+                                class="flex-1 bg-stone-50 border border-stone-200 rounded-xl sm:rounded-2xl px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-[#438F83]/20 focus:border-[#438F83] focus:bg-white transition-all text-gray-800 placeholder-gray-400 outline-none"
+                                autocomplete="off"
+                            >
+                            <button 
+                                type="submit" 
+                                aria-label="Kirim Pesan"
+                                class="p-2.5 sm:p-3 bg-[#438F83] hover:bg-[#38786e] text-white rounded-xl sm:rounded-2xl transition-all shadow-xs hover:shadow-sm flex items-center justify-center shrink-0 cursor-pointer"
+                            >
+                                <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                            </button>
+                        </form>
+                    @else
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <button type="button"
+                                    disabled
+                                    aria-label="Lampiran"
+                                    class="p-2.5 sm:p-3 text-gray-400 bg-stone-100 rounded-xl sm:rounded-2xl border border-stone-200 shrink-0 opacity-60 cursor-not-allowed">
+                                <i data-lucide="paperclip" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                            </button>
+                            <input 
+                                type="text" 
+                                placeholder="{{ $consultation->status === 'pending' ? 'Obrolan akan aktif setelah dokter menerima permintaan konsultasi.' : ($consultation->status === 'completed' ? 'Sesi konsultasi telah selesai. Obrolan ditutup.' : 'Konsultasi telah dibatalkan. Obrolan dinonaktifkan.') }}" 
+                                class="flex-1 bg-stone-100 border border-stone-200 rounded-xl sm:rounded-2xl px-4 py-3 text-xs sm:text-sm text-gray-400 placeholder-gray-400 outline-none cursor-not-allowed"
+                                disabled
+                            >
+                            <button 
+                                type="button" 
+                                disabled
+                                aria-label="Kirim Pesan"
+                                class="p-2.5 sm:p-3 bg-stone-300 text-white rounded-xl sm:rounded-2xl opacity-60 cursor-not-allowed flex items-center justify-center shrink-0"
+                            >
+                                <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                            </button>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </main>
 </div>
 
 <script>
     lucide.createIcons();
+
+    const parentChatMessages = document.getElementById('parentChatMessages');
+    if (parentChatMessages) {
+        parentChatMessages.scrollTop = parentChatMessages.scrollHeight;
+    }
 </script>
 </body>
 </html>

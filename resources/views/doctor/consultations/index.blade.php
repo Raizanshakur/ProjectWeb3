@@ -11,7 +11,6 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -22,8 +21,9 @@
     </style>
 </head>
 <body class="bg-[#F8FAFD] text-[#24323D] antialiased overflow-x-hidden">
+
     <div class="min-h-screen flex">
-        
+
         <!-- Mobile Header -->
         <header class="lg:hidden fixed top-0 left-0 right-0 z-40
                        h-16 bg-[#FBFAF6]/95 backdrop-blur
@@ -74,24 +74,26 @@
                         </p>
                     </div>
 
-                    <!-- Search Input -->
-                    <div class="relative w-full md:w-72">
+                    <!-- Search Input (Form GET) -->
+                    <form method="GET" action="{{ route('dokter.konsultasi') }}" class="relative w-full md:w-72">
+                        @if($currentStatus && $currentStatus !== 'all')
+                            <input type="hidden" name="status" value="{{ $currentStatus }}">
+                        @endif
                         <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#718096]"></i>
                         <input type="text"
-                               id="consultationSearch"
+                               name="search"
+                               value="{{ $search ?? '' }}"
                                placeholder="Cari pasien / keluhan..."
-                               oninput="handleSearch(this.value)"
-                               class="w-full pl-10 pr-4 py-2.5 bg-white border border-[#DFEBF5] rounded-2xl focus:outline-none focus:border-[#548FB7] focus:ring-2 focus:ring-[#548FB7]/20 transition-all text-sm text-[#24323D] placeholder-[#718096]/70 shadow-sm">
-                    </div>
+                               class="w-full pl-10 {{ !empty($search) ? 'pr-10' : 'pr-4' }} py-2.5 bg-white border border-[#DFEBF5] rounded-2xl focus:outline-none focus:border-[#548FB7] focus:ring-2 focus:ring-[#548FB7]/20 transition-all text-sm text-[#24323D] placeholder-[#718096]/70 shadow-sm">
+                        @if(!empty($search))
+                            <a href="{{ route('dokter.konsultasi', ($currentStatus && $currentStatus !== 'all') ? ['status' => $currentStatus] : []) }}"
+                               class="absolute right-3 top-1/2 -translate-y-1/2 text-[#718096] hover:text-[#24323D] p-1 transition-colors"
+                               title="Hapus pencarian">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </a>
+                        @endif
+                    </form>
                 </div>
-
-                @php
-                    $total = $consultations->count();
-                    $pending = $consultations->where('status', 'pending')->count();
-                    $active = $consultations->where('status', 'accepted')->count();
-                    $completed = $consultations->where('status', 'completed')->count();
-                    $cancelled = $consultations->where('status', 'cancelled')->count();
-                @endphp
 
                 <!-- Summary Cards (4 Cards - Soft Blue & Pastels) -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
@@ -100,7 +102,7 @@
                         <div class="w-10 h-10 rounded-full bg-[#DCECF8] flex items-center justify-center mb-3 text-[#548FB7]">
                             <i data-lucide="message-square" class="w-5 h-5"></i>
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $total }}</h3>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $counts['total'] ?? 0 }}</h3>
                         <p class="text-xs sm:text-sm text-[#718096] font-medium">Total Konsultasi</p>
                     </div>
 
@@ -109,7 +111,7 @@
                         <div class="w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center mb-3 text-[#B45309]">
                             <i data-lucide="clock" class="w-5 h-5"></i>
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $pending }}</h3>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $counts['pending'] ?? 0 }}</h3>
                         <p class="text-xs sm:text-sm text-[#9A6700] font-medium">Menunggu</p>
                     </div>
 
@@ -118,7 +120,7 @@
                         <div class="w-10 h-10 rounded-full bg-[#DCECF8] flex items-center justify-center mb-3 text-[#548FB7]">
                             <i data-lucide="message-circle" class="w-5 h-5"></i>
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $active }}</h3>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $counts['accepted'] ?? 0 }}</h3>
                         <p class="text-xs sm:text-sm text-[#718096] font-medium">Diterima / Aktif</p>
                     </div>
 
@@ -127,43 +129,33 @@
                         <div class="w-10 h-10 rounded-full bg-[#DCFCE7] flex items-center justify-center mb-3 text-[#15803D]">
                             <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $completed }}</h3>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-[#24323D] mb-1 tracking-tight">{{ $counts['completed'] ?? 0 }}</h3>
                         <p class="text-xs sm:text-sm text-[#1B6C3B] font-medium">Selesai</p>
                     </div>
                 </div>
 
                 <!-- Filters & Tabs -->
                 <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                    <button type="button"
-                            onclick="filterStatus('all')"
-                            data-target="all"
-                            class="tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]">
-                        Semua ({{ $total }})
-                    </button>
-                    <button type="button"
-                            onclick="filterStatus('pending')"
-                            data-target="pending"
-                            class="tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]">
-                        Menunggu ({{ $pending }})
-                    </button>
-                    <button type="button"
-                            onclick="filterStatus('accepted')"
-                            data-target="accepted"
-                            class="tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]">
-                        Diterima / Aktif ({{ $active }})
-                    </button>
-                    <button type="button"
-                            onclick="filterStatus('completed')"
-                            data-target="completed"
-                            class="tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]">
-                        Selesai ({{ $completed }})
-                    </button>
-                    <button type="button"
-                            onclick="filterStatus('cancelled')"
-                            data-target="cancelled"
-                            class="tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]">
-                        Dibatalkan ({{ $cancelled }})
-                    </button>
+                    <a href="{{ route('dokter.konsultasi', array_filter(['search' => $search])) }}"
+                       class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm {{ $currentStatus === 'all' ? 'bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]' : 'bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]' }}">
+                        Semua ({{ $counts['total'] ?? 0 }})
+                    </a>
+                    <a href="{{ route('dokter.konsultasi', array_filter(['status' => 'pending', 'search' => $search])) }}"
+                       class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm {{ $currentStatus === 'pending' ? 'bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]' : 'bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]' }}">
+                        Menunggu ({{ $counts['pending'] ?? 0 }})
+                    </a>
+                    <a href="{{ route('dokter.konsultasi', array_filter(['status' => 'accepted', 'search' => $search])) }}"
+                       class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm {{ $currentStatus === 'accepted' ? 'bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]' : 'bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]' }}">
+                        Diterima / Aktif ({{ $counts['accepted'] ?? 0 }})
+                    </a>
+                    <a href="{{ route('dokter.konsultasi', array_filter(['status' => 'completed', 'search' => $search])) }}"
+                       class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm {{ $currentStatus === 'completed' ? 'bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]' : 'bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]' }}">
+                        Selesai ({{ $counts['completed'] ?? 0 }})
+                    </a>
+                    <a href="{{ route('dokter.konsultasi', array_filter(['status' => 'cancelled', 'search' => $search])) }}"
+                       class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm {{ $currentStatus === 'cancelled' ? 'bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]' : 'bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]' }}">
+                        Dibatalkan ({{ $counts['cancelled'] ?? 0 }})
+                    </a>
                 </div>
 
                 <!-- Consultation List -->
@@ -188,13 +180,15 @@
                                 $statusText = 'Dibatalkan';
                             }
 
-                            $emoji = strtolower($consultation->child_gender ?? '') === 'l' ? '👦' : '👧';
-                            $searchHaystack = strtolower(($consultation->child_name ?? '') . ' ' . ($consultation->parent_name ?? '') . ' ' . ($consultation->complaint ?? ''));
+                            $childGender = strtolower($consultation->child?->gender ?? '');
+                            $emoji = $childGender === 'l' ? '👦' : ($childGender === 'p' ? '👧' : '👶');
+                            $childName = $consultation->child?->name ?? 'Pasien Anak';
+                            $childAge = $consultation->child?->formatted_age ?? '-';
+                            $parentName = $consultation->user?->name ?? 'Orang Tua';
+                            $consultationDate = $consultation->consultation_date ?? $consultation->created_at;
                         @endphp
                         
-                        <div class="consultation-card bg-white p-5 sm:p-6 rounded-[24px] sm:rounded-[28px] border border-[#DFEBF5] shadow-sm hover:border-[#BEDAF0] hover:shadow transition-all duration-200"
-                             data-status="{{ $statusKey }}"
-                             data-search="{{ $searchHaystack }}">
+                        <div class="consultation-card bg-white p-5 sm:p-6 rounded-[24px] sm:rounded-[28px] border border-[#DFEBF5] shadow-sm hover:border-[#BEDAF0] hover:shadow transition-all duration-200">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 
                                 <div class="flex items-start gap-4">
@@ -207,11 +201,11 @@
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2 mb-1">
                                             <h2 class="font-bold text-base sm:text-lg text-[#24323D]">
-                                                {{ $consultation->child_name }}
+                                                {{ $childName }}
                                             </h2>
                                             <span class="text-[#718096]/50 text-sm">•</span>
                                             <span class="text-[#718096] text-xs sm:text-sm font-medium">
-                                                {{ $consultation->child_age }}
+                                                {{ $childAge }}
                                             </span>
                                             <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold {{ $statusBadgeClass }} ml-1">
                                                 {{ $statusText }}
@@ -219,13 +213,13 @@
                                         </div>
                                         
                                         <p class="text-xs sm:text-sm text-[#718096] mb-2.5">
-                                            Orang tua: <span class="font-semibold text-[#24323D]">{{ $consultation->parent_name }}</span>
+                                            Orang tua: <span class="font-semibold text-[#24323D]">{{ $parentName }}</span>
                                         </p>
                                         
                                         <!-- Complaint Snippet -->
                                         <div class="bg-[#F3F8FD] p-3.5 rounded-2xl border border-[#DFEBF5]">
                                             <p class="text-xs sm:text-sm text-[#52758F] line-clamp-2 leading-relaxed">
-                                                "{{ $consultation->complaint }}"
+                                                "{{ $consultation->complaint ?? 'Tidak ada catatan keluhan.' }}"
                                             </p>
                                         </div>
                                     </div>
@@ -235,7 +229,7 @@
                                 <div class="flex flex-row md:flex-col items-center md:items-end justify-between pt-3 md:pt-0 border-t md:border-t-0 border-[#DFEBF5] gap-3 shrink-0 md:min-w-[140px]">
                                     <div class="text-xs text-[#718096] font-medium flex items-center gap-1.5">
                                         <i data-lucide="clock" class="w-3.5 h-3.5 text-[#548FB7]"></i>
-                                        <span>{{ \Carbon\Carbon::parse($consultation->consultation_date)->locale('id')->diffForHumans() }}</span>
+                                        <span>{{ $consultationDate ? \Carbon\Carbon::parse($consultationDate)->locale('id')->diffForHumans() : '-' }}</span>
                                     </div>
                                     <a href="{{ route('dokter.konsultasi.detail', $consultation->id) }}"
                                        class="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 bg-[#548FB7] hover:bg-[#427DA6] text-white text-xs sm:text-sm font-bold rounded-xl sm:rounded-2xl shadow-sm hover:shadow transition-all duration-200">
@@ -247,29 +241,49 @@
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-[28px] p-10 sm:p-12 border border-[#DFEBF5] shadow-sm flex flex-col items-center justify-center text-center">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#F3F8FD] border border-[#DFEBF5] flex items-center justify-center mb-4 text-[#548FB7]">
-                                <i data-lucide="inbox" class="w-8 h-8 sm:w-10 sm:h-10"></i>
+                        @if(!empty($search))
+                            <!-- Empty State: Pencarian tidak menemukan hasil -->
+                            <div class="bg-white rounded-[28px] p-10 sm:p-12 border border-[#DFEBF5] shadow-sm flex flex-col items-center justify-center text-center">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#F3F8FD] border border-[#DFEBF5] flex items-center justify-center mb-4 text-[#548FB7]">
+                                    <i data-lucide="search-x" class="w-8 h-8 sm:w-10 sm:h-10"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-[#24323D] mb-1.5">Tidak ada konsultasi yang sesuai dengan pencarian</h3>
+                                <p class="text-sm text-[#718096] max-w-sm mb-4">
+                                    Tidak ditemukan konsultasi untuk kata kunci "<span class="font-semibold text-[#24323D]">{{ $search }}</span>".
+                                </p>
+                                <a href="{{ route('dokter.konsultasi', ($currentStatus && $currentStatus !== 'all') ? ['status' => $currentStatus] : []) }}"
+                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EAF4FC] text-[#346D96] border border-[#DFEBF5] text-xs font-bold hover:bg-[#DCECF8] transition-colors">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                    Reset Pencarian
+                                </a>
                             </div>
-                            <h3 class="text-xl font-bold text-[#24323D] mb-1.5">Belum ada konsultasi</h3>
-                            <p class="text-sm text-[#718096] max-w-sm">Anda belum memiliki riwayat atau permintaan konsultasi saat ini.</p>
-                        </div>
+                        @elseif($currentStatus !== 'all')
+                            <!-- Empty State: Filter status tidak memiliki hasil -->
+                            <div class="bg-white rounded-[28px] p-10 sm:p-12 border border-[#DFEBF5] shadow-sm flex flex-col items-center justify-center text-center">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#F3F8FD] border border-[#DFEBF5] flex items-center justify-center mb-4 text-[#548FB7]">
+                                    <i data-lucide="filter-x" class="w-8 h-8 sm:w-10 sm:h-10"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-[#24323D] mb-1.5">Belum ada konsultasi dengan status ini</h3>
+                                <p class="text-sm text-[#718096] max-w-sm mb-4">
+                                    Tidak ada data konsultasi pada kategori filter yang dipilih.
+                                </p>
+                                <a href="{{ route('dokter.konsultasi') }}"
+                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EAF4FC] text-[#346D96] border border-[#DFEBF5] text-xs font-bold hover:bg-[#DCECF8] transition-colors">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                    Lihat Semua Konsultasi
+                                </a>
+                            </div>
+                        @else
+                            <!-- Empty State: Dokter belum memiliki konsultasi sama sekali -->
+                            <div class="bg-white rounded-[28px] p-10 sm:p-12 border border-[#DFEBF5] shadow-sm flex flex-col items-center justify-center text-center">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#F3F8FD] border border-[#DFEBF5] flex items-center justify-center mb-4 text-[#548FB7]">
+                                    <i data-lucide="inbox" class="w-8 h-8 sm:w-10 sm:h-10"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-[#24323D] mb-1.5">Belum ada konsultasi</h3>
+                                <p class="text-sm text-[#718096] max-w-sm">Anda belum memiliki riwayat atau permintaan konsultasi saat ini. Konsultasi baru dari orang tua akan muncul di sini.</p>
+                            </div>
+                        @endif
                     @endforelse
-
-                    <!-- Filter Empty State (Hidden by default, shown by JS when no match) -->
-                    <div id="filterEmptyState" class="hidden bg-white rounded-[28px] p-10 sm:p-12 border border-[#DFEBF5] shadow-sm flex flex-col items-center justify-center text-center">
-                        <div class="w-16 h-16 rounded-full bg-[#F3F8FD] border border-[#DFEBF5] flex items-center justify-center mb-3 text-[#548FB7]">
-                            <i data-lucide="search-x" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="text-lg sm:text-xl font-bold text-[#24323D] mb-1">Tidak ada konsultasi yang sesuai</h3>
-                        <p class="text-sm text-[#718096] max-w-sm mb-4">Coba ubah status filter atau kata kunci pencarian Anda.</p>
-                        <button type="button"
-                                onclick="resetFilters()"
-                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EAF4FC] text-[#346D96] border border-[#DFEBF5] text-xs font-bold hover:bg-[#DCECF8] transition-colors">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                            Reset Filter
-                        </button>
-                    </div>
 
                     @if(method_exists($consultations, 'links'))
                         <div class="pt-4">
@@ -317,64 +331,6 @@
 
     <script>
         lucide.createIcons();
-
-        let currentStatus = 'all';
-        let currentSearch = '';
-
-        function applyFilters() {
-            const cards = document.querySelectorAll('.consultation-card');
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                const cardStatus = card.dataset.status || '';
-                const cardSearch = card.dataset.search || '';
-
-                const statusMatch = (currentStatus === 'all') || (cardStatus === currentStatus);
-                const searchMatch = !currentSearch || cardSearch.includes(currentSearch);
-
-                if (statusMatch && searchMatch) {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            const emptyBox = document.getElementById('filterEmptyState');
-            if (emptyBox) {
-                if (cards.length > 0 && visibleCount === 0) {
-                    emptyBox.classList.remove('hidden');
-                } else {
-                    emptyBox.classList.add('hidden');
-                }
-            }
-        }
-
-        function filterStatus(status) {
-            currentStatus = status;
-
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.dataset.target === status) {
-                    btn.className = 'tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-[#EAF4FC] text-[#294E69] border border-[#BEDAF0]';
-                } else {
-                    btn.className = 'tab-btn px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-sm bg-white text-[#718096] border border-[#DFEBF5] hover:bg-[#F3F8FD] hover:text-[#24323D]';
-                }
-            });
-
-            applyFilters();
-        }
-
-        function handleSearch(query) {
-            currentSearch = (query || '').trim().toLowerCase();
-            applyFilters();
-        }
-
-        function resetFilters() {
-            const searchInput = document.getElementById('consultationSearch');
-            if (searchInput) searchInput.value = '';
-            currentSearch = '';
-            filterStatus('all');
-        }
     </script>
 </body>
 </html>

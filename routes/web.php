@@ -13,6 +13,7 @@ use App\Http\Controllers\Doctor\DoctorConsultationController;
 use App\Http\Controllers\Doctor\DoctorDashboardController;
 use App\Http\Controllers\Doctor\DoctorPatientsController;
 use App\Http\Controllers\Doctor\DoctorProfileController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +81,7 @@ Route::middleware(['auth', 'verified', 'role:parent'])->group(function () {
     Route::get('/consultations/create', [ConsultationController::class, 'create'])->name('consultations.create');
     Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
     Route::get('/consultations/{consultation}', [ConsultationController::class, 'show'])->name('consultations.show');
+    Route::post('/consultations/{consultation}/messages', [ConsultationController::class, 'sendMessage'])->name('consultations.messages.store');
     Route::post('/consultations/{consultation}/cancel', [ConsultationController::class, 'cancel'])->name('consultations.cancel');
     Route::delete('/consultations/{consultation}', [ConsultationController::class, 'cancel'])->name('consultations.destroy');
 });
@@ -105,6 +107,18 @@ Route::middleware(['auth', 'verified', 'role:doctor'])
 
         Route::get('/konsultasi/{id}', [DoctorConsultationController::class, 'show'])
             ->name('konsultasi.detail');
+
+        Route::post('/konsultasi/{id}/message', [DoctorConsultationController::class, 'sendMessage'])
+            ->name('konsultasi.message');
+
+        Route::post('/konsultasi/{id}/accept', [DoctorConsultationController::class, 'accept'])
+            ->name('konsultasi.accept');
+
+        Route::post('/konsultasi/{id}/notes', [DoctorConsultationController::class, 'saveNotes'])
+            ->name('konsultasi.notes');
+
+        Route::post('/konsultasi/{id}/complete', [DoctorConsultationController::class, 'complete'])
+            ->name('konsultasi.complete');
 
         // Pasien
         Route::get('/pasien', [DoctorPatientsController::class, 'index'])
@@ -138,6 +152,16 @@ Route::middleware('auth')->group(function () {
     // Alias logout dokter untuk kompatibilitas, memakai controller autentikasi yang sama
     Route::post('/dokter/logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('dokter.logout');
+
+    // Notifikasi Sistem (Shared antara Parent dan Dokter)
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])
+        ->name('notifications.unread-count');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.read-all');
 });
 
 /*

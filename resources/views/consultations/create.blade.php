@@ -33,8 +33,8 @@
     <x-growcare-sidebar active="consultations" />
 
     {{-- ================= MAIN ================= --}}
-    <main class="w-full min-w-0 lg:ml-[285px] pt-20 lg:pt-8 pb-28 lg:pb-12 px-4 sm:px-6 md:px-10">
-        <div class="max-w-[850px] mx-auto w-full">
+    <main class="w-full min-w-0 lg:ml-[285px] pt-20 lg:pt-8 pb-28 lg:pb-12 px-4 sm:px-6 md:px-8 lg:px-10">
+        <div class="w-full">
 
             {{-- BREADCRUMB / BACK --}}
             <a href="{{ route('consultations.index') }}"
@@ -75,7 +75,8 @@
                 @csrf
 
                 {{-- 1. PILIH ANAK --}}
-                <div class="bg-white rounded-3xl border border-stone-100 p-6 shadow-sm">
+                <div class="bg-white rounded-3xl border border-stone-100 p-6 shadow-sm"
+                     x-data="{ selectedChild: '{{ old('child_id', $selectedChildId ?? '') }}' }">
                     <label class="block text-sm font-bold text-gray-800 mb-2">
                         1. Pilih Anak <span class="text-red-500">*</span>
                     </label>
@@ -89,21 +90,44 @@
                             </a>
                         </div>
                     @else
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                             @foreach($children as $child)
-                                <label class="relative flex items-center p-4 rounded-2xl border-2 cursor-pointer transition
-                                              {{ old('child_id', $selectedChildId) == $child->id ? 'border-[#4B988D] bg-[#EFF7F4]' : 'border-stone-200 hover:border-stone-300 bg-stone-50/50' }}">
-                                    <input type="radio" name="child_id" value="{{ $child->id }}" class="sr-only"
-                                           {{ old('child_id', $selectedChildId) == $child->id ? 'checked' : '' }}
-                                           onchange="this.form.querySelectorAll('.child-card').forEach(c => c.classList.remove('border-[#4B988D]', 'bg-[#EFF7F4]')); this.closest('label').classList.add('border-[#4B988D]', 'bg-[#EFF7F4]');">
-                                    <span class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#438F83] shrink-0 mr-3">
-                                        <i data-lucide="baby" class="w-5 h-5"></i>
-                                    </span>
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-sm text-gray-800 truncate">{{ $child->name }}</p>
-                                        <p class="text-xs text-gray-400">
-                                            {{ $child->gender === 'L' ? 'Laki-laki' : 'Perempuan' }} • {{ $child->birth_date ? \Carbon\Carbon::parse($child->birth_date)->age . ' tahun' : '' }}
-                                        </p>
+                                <label @click="selectedChild = '{{ $child->id }}'"
+                                       :class="selectedChild == '{{ $child->id }}' ? 'border-[#438F83] bg-[#EFF7F4] ring-2 ring-[#438F83]/20 shadow-xs' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/70 bg-white'"
+                                       class="relative flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ old('child_id', $selectedChildId) == $child->id ? 'border-[#438F83] bg-[#EFF7F4] ring-2 ring-[#438F83]/20 shadow-xs' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/70 bg-white' }}">
+                                    
+                                    <div class="flex items-center min-w-0 flex-1 mr-3">
+                                        <input type="radio" 
+                                               name="child_id" 
+                                               value="{{ $child->id }}" 
+                                               x-model="selectedChild" 
+                                               class="sr-only"
+                                               {{ old('child_id', $selectedChildId) == $child->id ? 'checked' : '' }}>
+                                        
+                                        <span :class="selectedChild == '{{ $child->id }}' ? 'bg-[#438F83] text-white' : 'bg-[#EAF5F2] text-[#438F83]'"
+                                              class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-xs {{ old('child_id', $selectedChildId) == $child->id ? 'bg-[#438F83] text-white' : 'bg-[#EAF5F2] text-[#438F83]' }}">
+                                            <i data-lucide="baby" class="w-5 h-5"></i>
+                                        </span>
+
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-sm text-[#202725] truncate">{{ $child->name }}</p>
+                                            <p class="text-xs text-stone-500 mt-0.5">
+                                                {{ $child->gender === 'L' ? 'Laki-laki' : 'Perempuan' }} • {{ $child->birth_date ? \Carbon\Carbon::parse($child->birth_date)->age . ' tahun' : '' }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {{-- Checkmark indicator --}}
+                                    <div class="shrink-0 flex items-center justify-center">
+                                        <div x-show="selectedChild == '{{ $child->id }}'" 
+                                             class="w-6 h-6 rounded-full bg-[#438F83] text-white flex items-center justify-center shadow-xs {{ old('child_id', $selectedChildId) == $child->id ? '' : 'hidden' }}">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        <div x-show="selectedChild != '{{ $child->id }}'" 
+                                             class="w-6 h-6 rounded-full border-2 border-stone-300 {{ old('child_id', $selectedChildId) == $child->id ? 'hidden' : '' }}">
+                                        </div>
                                     </div>
                                 </label>
                             @endforeach
@@ -115,7 +139,8 @@
                 </div>
 
                 {{-- 2. PILIH DOKTER --}}
-                <div class="bg-white rounded-3xl border border-stone-100 p-6 shadow-sm">
+                <div class="bg-white rounded-3xl border border-stone-100 p-6 shadow-sm"
+                     x-data="{ selectedDoctor: '{{ old('doctor_id', $selectedDoctorId ?? '') }}' }">
                     <label class="block text-sm font-bold text-gray-800 mb-2">
                         2. Pilih Dokter Spesialis Anak <span class="text-red-500">*</span>
                     </label>
@@ -139,15 +164,21 @@
                     @else
                         <div class="space-y-3">
                             @foreach($doctors as $doctor)
-                                <label class="relative flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition
-                                              {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? 'border-[#4B988D] bg-[#EFF7F4]' : 'border-stone-200 hover:border-stone-300 bg-stone-50/50' }}">
-                                    <div class="flex items-center gap-3.5 mb-2 sm:mb-0">
-                                        <input type="radio" name="doctor_id" value="{{ $doctor->id }}" class="sr-only"
+                                <label @click="selectedDoctor = '{{ $doctor->id }}'"
+                                       :class="selectedDoctor == '{{ $doctor->id }}' ? 'border-[#438F83] bg-[#EFF7F4] ring-2 ring-[#438F83]/20 shadow-xs' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/70 bg-white'"
+                                       class="relative flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? 'border-[#438F83] bg-[#EFF7F4] ring-2 ring-[#438F83]/20 shadow-xs' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/70 bg-white' }}">
+                                    <div class="flex items-center gap-3.5 mb-2 sm:mb-0 min-w-0 flex-1">
+                                        <input type="radio" 
+                                               name="doctor_id" 
+                                               value="{{ $doctor->id }}" 
+                                               x-model="selectedDoctor" 
+                                               class="sr-only"
                                                {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? 'checked' : '' }}>
-                                        <span class="w-12 h-12 rounded-2xl bg-[#E8F4F0] text-[#438F83] flex items-center justify-center shrink-0">
+                                        <span :class="selectedDoctor == '{{ $doctor->id }}' ? 'bg-[#438F83] text-white' : 'bg-[#E8F4F0] text-[#438F83]'"
+                                              class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? 'bg-[#438F83] text-white' : 'bg-[#E8F4F0] text-[#438F83]' }}">
                                             <i data-lucide="stethoscope" class="w-6 h-6"></i>
                                         </span>
-                                        <div>
+                                        <div class="min-w-0 flex-1">
                                             <h4 class="font-bold text-sm sm:text-base text-gray-800">{{ $doctor->name }}</h4>
                                             <p class="text-xs text-gray-500">{{ $doctor->specialization ?? 'Dokter Spesialis Anak' }}</p>
                                             @if($doctor->practice_days)
@@ -158,9 +189,23 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 self-start sm:self-center">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span class="text-xs font-semibold text-emerald-700">Tersedia</span>
+                                    <div class="flex items-center gap-3 self-start sm:self-center shrink-0 ml-2">
+                                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Tersedia</span>
+                                        </div>
+                                        {{-- Checkmark indicator --}}
+                                        <div class="shrink-0 flex items-center justify-center">
+                                            <div x-show="selectedDoctor == '{{ $doctor->id }}'" 
+                                                 class="w-6 h-6 rounded-full bg-[#438F83] text-white flex items-center justify-center shadow-xs {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? '' : 'hidden' }}">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <div x-show="selectedDoctor != '{{ $doctor->id }}'" 
+                                                 class="w-6 h-6 rounded-full border-2 border-stone-300 {{ old('doctor_id', $selectedDoctorId) == $doctor->id ? 'hidden' : '' }}">
+                                            </div>
+                                        </div>
                                     </div>
                                 </label>
                             @endforeach

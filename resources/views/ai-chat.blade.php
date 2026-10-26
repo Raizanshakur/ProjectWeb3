@@ -140,30 +140,15 @@
             {{-- ================= AI CONTENT ================= --}}
             <div id="aiContent" class="mt-6">
 
-                {{-- NOTICE BANNER: FREE TIER PRIVACY & MEDICAL DISCLAIMER --}}
-                <div class="bg-gradient-to-r from-amber-50 to-[#EEF6F3] border border-amber-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                {{-- NOTICE BANNER: TENTANG NUTRIBOT --}}
+                <div class="bg-[#EEF6F3]/80 border border-[#D5E8E2] rounded-2xl p-4 sm:p-5 shadow-sm">
                     <div class="flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
-                        </span>
-                        <div class="space-y-1">
-                            <h3 class="font-bold text-sm text-stone-900">
-                                Pemberitahuan Privasi Google Gemini (Tier Free)
-                            </h3>
-                            <p class="text-xs text-stone-600 leading-relaxed">
-                                Pertanyaan Anda diproses oleh <strong>Google Gemini AI (Tier Free)</strong>. Sesuai ketentuan Google AI Studio Free Tier, percakapan dapat ditinjau oleh pihak Google untuk peningkatan mutu model.
-                                <strong>Mohon tidak menuliskan identitas sensitif anak</strong> seperti nama lengkap, NIK, alamat rumah, nomor telepon, atau data rekam medis pribadi dalam pertanyaan Anda.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 pt-2.5 border-t border-stone-200/60">
-                        <span class="w-9 h-9 rounded-full bg-teal-100 text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="w-9 h-9 rounded-full bg-[#D5E8E2] text-[#438F83] flex items-center justify-center flex-shrink-0 mt-0.5">
                             <i data-lucide="stethoscope" class="w-5 h-5"></i>
                         </span>
                         <div class="space-y-1">
                             <h3 class="font-bold text-sm text-stone-900">
-                                Batasan Medis NutriBot
+                                Tentang NutriBot
                             </h3>
                             <p class="text-xs text-stone-600 leading-relaxed">
                                 NutriBot adalah asisten edukasi nutrisi dan tumbuh kembang anak, <strong>bukan pengganti tenaga medis</strong>. NutriBot tidak memberikan diagnosis klinis atau dosis obat. Bila anak menunjukkan gejala darurat atau sakit mengkhawatirkan, segera periksakan ke dokter spesialis anak.
@@ -221,7 +206,7 @@
                                 </h2>
 
                                 <p class="text-xs text-emerald-600 font-medium">
-                                    Online • Gemini 3.8 Flash
+                                    Online • Assistant AI
                                 </p>
 
                             </div>

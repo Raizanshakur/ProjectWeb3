@@ -98,9 +98,9 @@
                     <div class="relative shrink-0">
                         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#DCECF8] flex items-center justify-center overflow-hidden border-4 border-white shadow-md text-[#548FB7] text-2xl font-bold">
                             @if(isset($doctor->photo) && $doctor->photo)
-                                <img src="{{ asset('storage/' . $doctor->photo) }}" alt="{{ $doctor->name }}" class="w-full h-full object-cover">
+                                <img src="{{ asset('storage/' . $doctor->photo) }}" alt="{{ $doctor->name ?? 'Dokter' }}" class="w-full h-full object-cover">
                             @else
-                                {{ collect(explode(' ', $doctor->name ?? 'D'))->map(fn($n) => substr($n, 0, 1))->take(2)->join('') }}
+                                {{ collect(explode(' ', $doctor->name ?? 'Dokter'))->map(fn($n) => substr($n, 0, 1))->take(2)->join('') }}
                             @endif
                         </div>
                         
@@ -136,11 +136,11 @@
                         </div>
                         
                         <h2 class="text-2xl sm:text-3xl font-bold text-[#294E69] mb-1.5 tracking-tight truncate">
-                            {{ $doctor->name ?? 'Dr. Name' }}
+                            {{ $doctor->name ?? 'Dokter' }}
                         </h2>
                         
                         <p class="text-xs sm:text-sm text-[#52758F] mb-4 max-w-2xl leading-relaxed">
-                            {{ $doctor->bio ?? 'Belum ada biografi singkat.' }}
+                            {{ $doctor->bio ?: 'Belum ada biografi.' }}
                         </p>
                         
                         <div class="flex flex-wrap justify-center md:justify-start gap-2.5">
@@ -152,10 +152,17 @@
                                 <i data-lucide="mail" class="w-3.5 h-3.5 text-[#548FB7]"></i>
                                 <span>{{ $doctor->email ?? '-' }}</span>
                             </span>
-                            @if(isset($doctor->practice_days))
+                            @if(!empty($doctor->practice_days))
                                 <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/70 text-[#24323D] border border-[#DFEBF5] text-xs font-medium rounded-full shadow-2xs">
                                     <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#548FB7]"></i>
-                                    <span>{{ $doctor->practice_days }} ({{ $doctor->start_time ?? '-' }} - {{ $doctor->end_time ?? '-' }} WIB)</span>
+                                    <span>
+                                        {{ $doctor->practice_days }}
+                                        @if(!empty($doctor->start_time) && !empty($doctor->end_time))
+                                            ({{ substr($doctor->start_time, 0, 5) }} - {{ substr($doctor->end_time, 0, 5) }} WIB)
+                                        @elseif(!empty($doctor->start_time))
+                                            ({{ substr($doctor->start_time, 0, 5) }} WIB)
+                                        @endif
+                                    </span>
                                 </span>
                             @endif
                         </div>
@@ -187,7 +194,7 @@
                                        id="doctorName"
                                        name="name"
                                        value="{{ old('name', $doctor->name ?? '') }}"
-                                       placeholder="Contoh: Dr. Anisa Rahma, Sp.A"
+                                       placeholder="Contoh: dr. Nama Dokter, Sp.A"
                                        class="w-full px-4 py-3 bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-sm text-[#24323D] placeholder-[#718096]/70 shadow-2xs">
                                 @error('name')
                                     <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>
@@ -217,7 +224,7 @@
                                        id="doctorStr"
                                        name="str_number"
                                        value="{{ old('str_number', $doctor->str_number ?? '') }}"
-                                       placeholder="Contoh: STR-3120-1234-5678"
+                                       placeholder="Contoh: STR-1234-5678-9012"
                                        class="w-full px-4 py-3 bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-sm text-[#24323D] placeholder-[#718096]/70 shadow-2xs">
                                 @error('str_number')
                                     <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>
@@ -260,7 +267,7 @@
                                        id="doctorPhone"
                                        name="phone"
                                        value="{{ old('phone', $doctor->phone ?? '') }}"
-                                       placeholder="Contoh: 0812-3456-7890"
+                                       placeholder="Contoh: 0812-0000-0000"
                                        class="w-full px-4 py-3 bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-sm text-[#24323D] placeholder-[#718096]/70 shadow-2xs">
                                 @error('phone')
                                     <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>
@@ -306,7 +313,7 @@
                                 <input type="time"
                                        id="doctorStartTime"
                                        name="start_time"
-                                       value="{{ old('start_time', $doctor->start_time ?? '') }}"
+                                       value="{{ old('start_time', $doctor->start_time ? substr($doctor->start_time, 0, 5) : '') }}"
                                        class="w-full px-4 py-3 bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-sm text-[#24323D] shadow-2xs">
                                 @error('start_time')
                                     <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>
@@ -320,7 +327,7 @@
                                 <input type="time"
                                        id="doctorEndTime"
                                        name="end_time"
-                                       value="{{ old('end_time', $doctor->end_time ?? '') }}"
+                                       value="{{ old('end_time', $doctor->end_time ? substr($doctor->end_time, 0, 5) : '') }}"
                                        class="w-full px-4 py-3 bg-[#F8FAFD] border border-[#DFEBF5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#548FB7]/20 focus:border-[#548FB7] focus:bg-white transition-all text-sm text-[#24323D] shadow-2xs">
                                 @error('end_time')
                                     <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>

@@ -118,18 +118,97 @@
                     </div>
 
 
-                    <button type="button"
-                            class="w-11 h-11
-                                   bg-white border
-                                   border-stone-200
-                                   rounded-full
-                                   flex items-center
-                                   justify-center shadow-sm">
+                    <!-- Notifikasi Bell Dropdown (Parent - Sage Green Theme) -->
+                    @php
+                        $parentUser = Auth::user();
+                        $unreadParentNotifCount = $parentUser ? $parentUser->unreadNotifications()->count() : 0;
+                        $parentNotifications = $parentUser ? $parentUser->notifications()->latest()->take(10)->get() : collect();
+                    @endphp
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+                        <button type="button"
+                                @click="open = !open"
+                                aria-label="Notifikasi"
+                                class="relative w-11 h-11 bg-white border border-stone-200 rounded-full flex items-center justify-center shadow-sm hover:border-[#438F83] hover:text-[#438F83] transition cursor-pointer">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            <span id="parentNotificationBadge"
+                                  class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-[#438F83] text-white text-[11px] font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-xs {{ $unreadParentNotifCount > 0 ? '' : 'hidden' }}">
+                                {{ $unreadParentNotifCount > 99 ? '99+' : $unreadParentNotifCount }}
+                            </span>
+                        </button>
 
-                        <i data-lucide="bell"
-                           class="w-5 h-5"></i>
+                        <!-- Dropdown Panel (Parent) -->
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                             class="absolute right-0 mt-2.5 w-80 sm:w-96 bg-white rounded-3xl shadow-xl border border-stone-200 z-50 overflow-hidden"
+                             style="display: none;">
+                            
+                            <!-- Header -->
+                            <div class="p-4 bg-[#F8F7F2] border-b border-stone-200 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-[#202725]">Notifikasi</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E0F0EB] text-[#2D635B]">
+                                        {{ $unreadParentNotifCount }} baru
+                                    </span>
+                                </div>
+                                @if($unreadParentNotifCount > 0)
+                                    <form action="{{ route('notifications.read-all') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-semibold text-[#438F83] hover:text-[#2D635B] hover:underline cursor-pointer">
+                                            Tandai Semua Dibaca
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
 
-                    </button>
+                            <!-- List -->
+                            <div class="max-h-80 overflow-y-auto divide-y divide-stone-100">
+                                @forelse($parentNotifications as $notif)
+                                    @php
+                                        $diffSec = abs(\Carbon\Carbon::now()->diffInSeconds($notif->created_at));
+                                        $timeText = $diffSec < 60 ? 'Baru saja' : $notif->created_at->locale('id')->diffForHumans();
+                                        $isUnread = $notif->unread();
+                                    @endphp
+                                    <form action="{{ route('notifications.read', $notif->id) }}" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="w-full text-left p-3.5 flex items-start gap-3 transition-colors {{ $isUnread ? 'bg-[#F4FAF7] hover:bg-[#EAF5F0]' : 'bg-white hover:bg-stone-50' }} cursor-pointer">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 {{ $isUnread ? 'bg-[#E0F0EB] text-[#438F83]' : 'bg-stone-100 text-stone-500' }}">
+                                                <i data-lucide="{{ $notif->data['icon'] ?? 'bell' }}" class="w-4 h-4"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-between gap-2 mb-0.5">
+                                                    <h4 class="text-xs font-bold truncate {{ $isUnread ? 'text-[#202725]' : 'text-stone-700' }}">
+                                                        {{ $notif->data['title'] ?? 'Pemberitahuan' }}
+                                                    </h4>
+                                                    @if($isUnread)
+                                                        <span class="w-2 h-2 rounded-full bg-[#438F83] shrink-0" title="Belum dibaca"></span>
+                                                    @endif
+                                                </div>
+                                                <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
+                                                    {{ $notif->data['message'] ?? '' }}
+                                                </p>
+                                                <span class="text-[10px] text-gray-400 mt-1 block">
+                                                    {{ $timeText }}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    </form>
+                                @empty
+                                    <div class="py-10 px-4 text-center">
+                                        <div class="w-10 h-10 rounded-full bg-[#E0F0EB] text-[#438F83] flex items-center justify-center mx-auto mb-2.5">
+                                            <i data-lucide="bell-off" class="w-5 h-5"></i>
+                                        </div>
+                                        <p class="text-xs font-bold text-gray-800">Belum ada notifikasi</p>
+                                        <p class="text-[11px] text-gray-500 mt-0.5">Pemberitahuan aktivitas konsultasi dokter akan muncul di sini.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -1290,6 +1369,25 @@
 <script>
     window.growthChartData = @json($growthChartData ?? ['labels' => [], 'weights' => [], 'heights' => []]);
     lucide.createIcons();
+
+    // Polling notifikasi berkala (setiap 45 detik) saat tab aktif
+    setInterval(() => {
+        if (document.visibilityState !== 'visible') return;
+        fetch('{{ route('notifications.unread-count') }}', { credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                const badge = document.getElementById('parentNotificationBadge');
+                if (badge) {
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(() => {});
+    }, 45000);
 </script>
 
 </body>
